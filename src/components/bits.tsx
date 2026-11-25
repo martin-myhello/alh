@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { dueLabel, plain } from "@/lib/format";
+import { agoLabel, dueLabel, plain } from "@/lib/format";
 import { STATUS_LABEL, type Note, type Person, type Status } from "@/lib/types";
 import { Icon } from "./Icon";
 import { Stack } from "./Stack";
@@ -63,6 +63,13 @@ export function Tabs({
 export function NoteCard({ note, people }: { note: Note; people: Map<string, Person> }) {
   const due = dueLabel(note.due);
   const shots = note.shots.slice(0, 3);
+
+  // The latest update sits under the note, with the two newest comments and a count of the rest.
+  const latest = note.updates[0];
+  const comments = note.updates.flatMap((u) => u.comments).sort((x, y) => x.createdAt - y.createdAt);
+  const preview = comments.slice(-2);
+  const shown = new Set(preview.map((c) => c.id));
+  const others = [...new Set(comments.filter((c) => !shown.has(c.id)).map((c) => c.personId))].slice(0, 3);
   return (
     <article className={`card${shots.length ? "" : " bare"}`}>
       <Link className="card-cover" href={`/notes/${note.id}`} aria-label={note.title} />
@@ -103,6 +110,40 @@ export function NoteCard({ note, people }: { note: Note; people: Map<string, Per
           ))}
         </span>
       </div>
+      {latest && (
+        <div className="card-update">
+          <div className="cu-head">
+            <Avatar person={people.get(latest.personId)} />
+            <span className="cu-who">{people.get(latest.personId)?.name}</span>
+            <span>
+              {STATUS_LABEL[latest.status]} · {agoLabel(latest.createdAt)}
+            </span>
+          </div>
+          <p className="cu-body">{plain(latest.body)}</p>
+          {comments.length > 0 && (
+            <div className="cu-comments">
+              {preview.map((c) => (
+                <div className="cu-comment" key={c.id}>
+                  <Avatar person={people.get(c.personId)} />
+                  <span className="cu-bubble">
+                    <b>{people.get(c.personId)?.name}</b> {c.body} {c.emoji}
+                  </span>
+                </div>
+              ))}
+              {comments.length > preview.length && (
+                <div className="cu-more">
+                  <span className="avatars">
+                    {others.map((id) => (
+                      <Avatar key={id} person={people.get(id)} />
+                    ))}
+                  </span>
+                  {comments.length - preview.length} more {comments.length - preview.length === 1 ? "comment" : "comments"}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </article>
   );
 }
