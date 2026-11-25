@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Avatar, NoteRow, byId } from "@/components/bits";
 import { TopBar } from "@/components/TopBar";
 import { getData } from "@/lib/db";
-import { agoLabel, dueLabel, longDate, todayISO } from "@/lib/format";
+import { agoLabel, dueLabel, longDate, plain, todayISO } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Today" };
@@ -37,7 +37,7 @@ export default async function Today() {
         <h2 className="section">Shipping today</h2>
         <div className="rows">
           {shipping.map((n) => (
-            <NoteRow key={n.id} note={n} people={map} sub={n.updates[0]?.body} />
+            <NoteRow key={n.id} note={n} people={map} sub={plain(n.updates[0]?.body ?? "")} />
           ))}
           {shipping.length === 0 && <p className="empty">Nothing is due today</p>}
         </div>
@@ -47,7 +47,7 @@ export default async function Today() {
             <h2 className="section">Running late</h2>
             <div className="rows">
               {late.map((n) => (
-                <NoteRow key={n.id} note={n} people={map} when={dueLabel(n.due)} sub={n.updates[0]?.body} />
+                <NoteRow key={n.id} note={n} people={map} when={dueLabel(n.due)} sub={plain(n.updates[0]?.body ?? "")} />
               ))}
             </div>
           </>
@@ -56,7 +56,7 @@ export default async function Today() {
         <h2 className="section">Moved today</h2>
         <div className="rows">
           {moved.map((n) => (
-            <NoteRow key={n.id} note={n} people={map} sub={n.updates[0]?.body} />
+            <NoteRow key={n.id} note={n} people={map} sub={plain(n.updates[0]?.body ?? "")} />
           ))}
           {moved.length === 0 && <p className="empty">Quiet so far</p>}
         </div>

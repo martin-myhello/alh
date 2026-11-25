@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar, Back, Pill, byId } from "@/components/bits";
-import { CommentBox, UpdateBox } from "@/components/dialogs";
+import { CommentBox } from "@/components/dialogs";
+import { Editor } from "@/components/Editor";
+import { Rich } from "@/components/Rich";
 import { NoteMeta } from "@/components/NoteMeta";
 import { Shot } from "@/components/Shot";
 import { getData } from "@/lib/db";
@@ -36,7 +38,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
         {note.description && <p className="lede">{note.description}</p>}
       </header>
 
-      <UpdateBox noteId={note.id} status={note.status} />
+      <Editor noteId={note.id} status={note.status} />
 
       {days.map(([label, updates]) => (
         <section className="day" key={label}>
@@ -48,7 +50,11 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
                   <Avatar person={map.get(u.personId)} />
                 </Link>
                 <p className="entry-status">{STATUS_LABEL[u.status]}</p>
-                <p className="entry-body">{u.body}</p>
+                {u.body && (
+                  <div className="entry-body">
+                    <Rich text={u.body} />
+                  </div>
+                )}
                 {u.shots.length > 0 && (
                   <div className="strip">
                     {u.shots.map((s, i) => (

@@ -1,4 +1,4 @@
-export const TABLES = ["notifications", "comments", "updates", "note_people", "notes", "people"];
+export const TABLES = ["images", "notifications", "comments", "updates", "note_people", "notes", "people"];
 
 export const SCHEMA: string[] = [
   `create table if not exists people (
@@ -54,6 +54,12 @@ export const SCHEMA: string[] = [
     body text not null default '',
     created_at bigint not null,
     read_at bigint
+  )`,
+  `create table if not exists images (
+    id text primary key,
+    mime text not null,
+    data text not null,
+    created_at bigint not null
   )`,
   `create index if not exists notifications_person_idx on notifications(person_id, created_at desc)`,
   `create index if not exists updates_note_idx on updates(note_id)`,

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { addComment, createNote, postUpdate } from "@/app/actions";
+import { addComment, createNote } from "@/app/actions";
 import { STATUS_LABEL, TAGS, type Person, type Status } from "@/lib/types";
 import { Icon } from "./Icon";
 
@@ -177,31 +177,6 @@ export function CommentBox({ updateId }: { updateId: string }) {
         onBlur={(e) => !e.currentTarget.value && setOpen(false)}
         onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
       />
-    </form>
-  );
-}
-
-export function UpdateBox({ noteId, status }: { noteId: string; status: Status }) {
-  const form = useRef<HTMLFormElement>(null);
-  return (
-    <form
-      className="post"
-      ref={form}
-      action={async (data) => {
-        await postUpdate(data);
-        form.current?.reset();
-      }}
-    >
-      <input type="hidden" name="noteId" value={noteId} />
-      <input type="text" name="body" placeholder="What changed?" maxLength={600} autoComplete="off" required />
-      <select name="status" defaultValue={status} key={status} aria-label="Status">
-        {(Object.keys(STATUS_LABEL) as Status[]).map((s) => (
-          <option key={s} value={s}>
-            {STATUS_LABEL[s]}
-          </option>
-        ))}
-      </select>
-      <Submit>Post</Submit>
     </form>
   );
 }

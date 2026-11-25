@@ -162,14 +162,28 @@ export async function insertNote(input: {
   return noteId;
 }
 
-export async function insertUpdate(input: { noteId: string; by: string; status: Status; body: string }) {
+export async function insertUpdate(input: {
+  noteId: string;
+  by: string;
+  status: Status;
+  body: string;
+  preview: string;
+  images: { mime: string; data: string }[];
+}) {
   const now = Date.now();
+  const stored = input.images.map((image) => ({ ...image, id: crypto.randomUUID() }));
+  const shots = JSON.stringify(stored.map((image) => `/img/${image.id}`));
   const people = (await sql`select person_id from note_people where note_id = ${input.noteId}`) as Raw[];
   await sql.transaction([
-    sql`insert into updates (id, note_id, person_id, status, body, created_at)
-        values (${`${input.noteId}-${id()}`}, ${input.noteId}, ${input.by}, ${input.status}, ${input.body}, ${now})`,
-    sql`update notes set status = ${input.status} where id = ${input.noteId}`,
-    ...notify(people.map((r) => r.person_id as string), "update", input.by, input.noteId, input.body, now),
+    ...stored.map(
+      (image) =>
+        sql`insert into images (id, mime, data, created_at) values (${image.id}, ${image.mime}, ${image.data}, ${now})`,
+    ),
+    sql`insert into updates (id, note_id, person_id, status, body, shots, created_at)
+        values (${`${input.noteId}-${id()}`}, ${input.noteId}, ${input.by}, ${input.status}, ${input.body}, ${shots}::jsonb, ${now})`,
+    // New pictures go on top of the note's pile, so the card on the feed shows the latest work.
+    sql`update notes set status = ${input.status}, shots = ${shots}::jsonb || shots where id = ${input.noteId}`,
+    ...notify(people.map((r) => r.person_id as string), "update", input.by, input.noteId, input.preview, now),
   ]);
 }
 
@@ -215,6 +229,11 @@ export async function updateNote(input: {
     ),
     ...notify(input.people.filter((person) => !had.has(person)), "added", input.by, input.noteId, "", now),
   ]);
+}
+
+export async function getImage(imageId: string): Promise<{ mime: string; data: string } | null> {
+  const [row] = (await sql`select mime, data from images where id = ${imageId}`) as Raw[];
+  return row ? { mime: row.mime as string, data: row.data as string } : null;
 }
 
 export async function markRead(me: string, notificationId?: string) {

@@ -986,6 +986,206 @@ button.chip.ghost:hover {
   cursor: default;
 }
 
+/* ---------- Update editor and formatted text ---------- */
+
+.editor {
+  margin: 0 0 34px;
+  padding: 13px 8px 8px 16px;
+  border-radius: 19px;
+  border: var(--hairline) solid var(--p30a);
+  background: var(--p00);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.editor:focus-within {
+  border-color: var(--p50a);
+  box-shadow: 0 7px 10px -4px var(--p10a);
+}
+
+.editor.over {
+  border-style: dashed;
+  border-color: var(--status-blue);
+}
+
+.rich {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 8px;
+  outline: 0;
+  line-height: 18px;
+  color: var(--t1);
+  word-break: break-word;
+}
+
+.rich[data-empty]::before {
+  content: attr(data-placeholder);
+  color: var(--t4);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+.editor:focus-within .rich,
+.rich:not([data-empty]) {
+  min-height: 54px;
+}
+
+.rich b,
+.rich strong {
+  font-weight: 600;
+}
+
+.rich ul,
+.rich ol {
+  margin: 4px 0;
+  padding-left: 19px;
+}
+
+.rich a {
+  text-decoration: underline;
+  text-decoration-color: var(--p40a);
+  text-underline-offset: 2px;
+}
+
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.thumb {
+  position: relative;
+  width: 96px;
+  aspect-ratio: 439 / 241;
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow: 0 0 0 var(--hairline) var(--p30a);
+}
+
+.thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb button {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(31, 32, 36, 0.72);
+  color: #fff;
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 10px 0 0 -7px;
+}
+
+.tools .spacer {
+  flex: 1;
+}
+
+.tool {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--t3);
+  font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tool:hover {
+  background: var(--p10);
+  color: var(--t1);
+}
+
+.tool:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.tool i {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+}
+
+.tools select {
+  height: 30px;
+  margin-right: 6px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--t3);
+  outline: none;
+}
+
+.tools select:hover {
+  color: var(--t1);
+}
+
+.tools .btn {
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 15px;
+}
+
+.entry-body p {
+  margin: 0;
+}
+
+.entry-body p + p,
+.entry-body p + ul,
+.entry-body p + ol,
+.entry-body ul + p,
+.entry-body ol + p {
+  margin-top: 9px;
+}
+
+.entry-body ul,
+.entry-body ol {
+  margin: 0;
+  padding-left: 19px;
+}
+
+.entry-body li + li {
+  margin-top: 3px;
+}
+
+.entry-body strong {
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.entry-body a {
+  color: var(--t1);
+  text-decoration: underline;
+  text-decoration-color: var(--p40a);
+  text-underline-offset: 2px;
+}
+
+.entry-body a:hover {
+  text-decoration-color: currentColor;
+}
+
+.entry-body code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--p10);
+  font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 /* ---------- Editable meta, notifications ---------- */
 
 .note-meta button,

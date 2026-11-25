@@ -59,3 +59,15 @@ export function splitEmoji(text: string): [string, string | null] {
   if (m && m[1].trim()) return [m[1].trim(), m[2]];
   return [text.trim(), null];
 }
+
+/** Formatting marks removed, for one-line previews and notifications. */
+export function plain(text: string): string {
+  return text
+    .replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1")
+    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
+    .replace(/\*([^*\n]+)\*/g, "$1")
+    .replace(/`([^`\n]+)`/g, "$1")
+    .replace(/^\s*(?:[-*•]|\d+[.)])\s+/gm, "")
+    .replace(/\s*\n+\s*/g, " · ")
+    .trim();
+}

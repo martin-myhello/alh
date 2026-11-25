@@ -13,7 +13,7 @@ import {
   markRead,
   updateNote,
 } from "@/lib/db";
-import { splitEmoji } from "@/lib/format";
+import { plain, splitEmoji } from "@/lib/format";
 import { STATUS_LABEL, TAGS, type Status } from "@/lib/types";
 
 const text = (form: FormData, key: string, max: number) =>
@@ -89,9 +89,24 @@ export async function saveNote(form: FormData) {
 
 export async function postUpdate(form: FormData) {
   const noteId = text(form, "noteId", 80);
-  const body = text(form, "body", 600);
-  if (!noteId || !body) return;
-  await insertUpdate({ noteId, by: await getMeId(), status: status(form), body });
+  const body = text(form, "body", 2000);
+
+  // The editor already shrinks images to JPEG; anything else or oversized is dropped.
+  const images: { mime: string; data: string }[] = [];
+  for (const file of form.getAll("images").slice(0, 4)) {
+    if (!(file instanceof File) || file.type !== "image/jpeg" || file.size > 900_000) continue;
+    images.push({ mime: file.type, data: Buffer.from(await file.arrayBuffer()).toString("base64") });
+  }
+  if (!noteId || (!body && !images.length)) return;
+
+  await insertUpdate({
+    noteId,
+    by: await getMeId(),
+    status: status(form),
+    body,
+    preview: plain(body) || (images.length > 1 ? `${images.length} images` : "An image"),
+    images,
+  });
   revalidatePath("/", "layout");
 }
 
