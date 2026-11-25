@@ -55,6 +55,7 @@ html {
 
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--base-1);
   color: var(--t1);
   font-family: var(--font);
@@ -679,9 +680,9 @@ button.chip.ghost:hover {
 /* ---------- Note detail ---------- */
 
 .note {
-  position: relative;
-  max-width: 1100px;
-  padding: 0 23px 120px 0;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 0 120px;
 }
 
 .note .back {
@@ -691,13 +692,12 @@ button.chip.ghost:hover {
 }
 
 .note-head {
-  padding: 36px 0 0 177px;
+  padding: 36px 0 0;
   min-height: 158px;
 }
 
 .note-head h1 {
   margin: 0;
-  padding-right: 130px;
   font-size: 21px;
   line-height: 25px;
   font-weight: 500;
@@ -705,8 +705,7 @@ button.chip.ghost:hover {
 }
 
 .note-head .lede {
-  margin: 12px 0 0 4px;
-  max-width: 520px;
+  margin: 12px 0 0;
   color: var(--t3);
   line-height: 18px;
 }
@@ -723,7 +722,7 @@ button.chip.ghost:hover {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 28px;
-  margin: 13px 0 0 6px;
+  margin: 13px 0 0;
   color: var(--t3);
   min-height: 24px;
 }
@@ -735,9 +734,7 @@ button.chip.ghost:hover {
 }
 
 .day {
-  display: grid;
-  grid-template-columns: 150px minmax(0, 1fr);
-  padding-left: 31px;
+  position: relative;
 }
 
 .day + .day {
@@ -746,7 +743,14 @@ button.chip.ghost:hover {
 
 .day-label {
   color: var(--t3);
-  padding-top: 0;
+}
+
+.day > .day-label {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  width: 150px;
+  white-space: nowrap;
 }
 
 .entry + .entry {
@@ -765,14 +769,13 @@ button.chip.ghost:hover {
 .entry-body {
   margin: 8px 0 0;
   color: var(--t2);
-  max-width: 560px;
   line-height: 18px;
 }
 
 .strip {
   display: flex;
   gap: 12px;
-  margin: 40px -23px 0 0;
+  margin: 40px calc(300px - 50vw) 0 -2px;
   padding: 0 23px 26px 2px;
   overflow-x: auto;
   scrollbar-width: none;
@@ -816,7 +819,7 @@ button.chip.ghost:hover {
   justify-content: flex-end;
   align-items: center;
   gap: 12px;
-  margin: 10px 96px 0 0;
+  margin: 10px 0 0;
   min-height: 28px;
 }
 
@@ -844,8 +847,7 @@ button.chip.ghost:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 34px 181px;
-  max-width: 560px;
+  margin: 0 0 34px;
 }
 
 .post input[type="text"] {
@@ -1146,42 +1148,6 @@ dialog form {
   .people-wrap {
     margin-right: -16px;
   }
-  .note {
-    padding: 0 16px 96px;
-  }
-  .note .back {
-    position: static;
-    margin-top: 16px;
-  }
-  .note > .pill {
-    right: 16px;
-    top: 21px;
-  }
-  .note-head {
-    padding: 24px 0 0;
-    min-height: 0;
-    margin-bottom: 36px;
-  }
-  .note-head h1 {
-    padding-right: 0;
-  }
-  .day {
-    display: block;
-    padding-left: 0;
-  }
-  .day-label {
-    margin-bottom: 14px;
-  }
-  .post {
-    margin-left: 0;
-    flex-wrap: wrap;
-  }
-  .composer {
-    margin-right: 0;
-  }
-  .strip {
-    margin-right: -16px;
-  }
   .tl-day {
     display: block;
   }
@@ -1194,6 +1160,39 @@ dialog form {
   }
   .card-foot {
     gap: 18px;
+  }
+}
+
+@media (max-width: 960px) {
+  .note {
+    padding: 0 16px 96px;
+  }
+  .note .back {
+    position: static;
+    margin-top: 16px;
+  }
+  .note > .pill {
+    right: 16px;
+    top: 21px;
+  }
+  .note-head {
+    padding-top: 24px;
+    min-height: 0;
+    margin-bottom: 36px;
+  }
+  .day > .day-label {
+    position: static;
+    width: auto;
+    margin-bottom: 14px;
+  }
+  .post {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 632px) {
+  .strip {
+    margin-right: -16px;
   }
 }
 
