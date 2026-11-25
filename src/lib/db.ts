@@ -23,7 +23,8 @@ const shots = (v: unknown): string[] =>
 
 async function loadRows(): Promise<Rows> {
   if (!sql) return memory();
-  const [people, notes, notePeople, updates, comments] = (await Promise.all([
+  // One HTTP round trip for all five reads.
+  const [people, notes, notePeople, updates, comments] = (await sql.transaction([
     sql`select * from people order by sort`,
     sql`select * from notes`,
     sql`select * from note_people order by sort`,
