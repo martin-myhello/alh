@@ -1406,6 +1406,179 @@ form + form > .row {
   color: var(--brand-orange);
 }
 
+/* ---------- Timeline: horizontal, one bar per note from start to due ---------- */
+
+.gantt {
+  --day: 44px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-top: 34px;
+  padding: 22px 0 72px;
+  outline: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--p30) transparent;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+
+.gantt-inner {
+  position: relative;
+  margin: 0 48px;
+}
+
+.gantt-head {
+  display: flex;
+  height: 46px;
+}
+
+.gantt-day {
+  position: relative;
+  flex: none;
+  width: var(--day);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  line-height: 13px;
+  color: var(--t4);
+}
+
+.gantt-day b {
+  font-size: 13px;
+  line-height: 15px;
+  font-weight: 400;
+  color: var(--t3);
+}
+
+.gantt-day.off b {
+  color: var(--t4);
+}
+
+.gantt-day.today,
+.gantt-day.today b {
+  color: var(--brand-orange);
+}
+
+.gantt-month {
+  position: absolute;
+  left: 12px;
+  top: -22px;
+  white-space: nowrap;
+  font-size: 13px;
+  line-height: 15px;
+  color: var(--t1);
+}
+
+.gantt-body {
+  position: relative;
+  padding: 6px 0 10px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--p20a) 0,
+    var(--p20a) var(--hairline),
+    transparent var(--hairline),
+    transparent var(--day)
+  );
+}
+
+.gantt-weekend {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--day) * 2);
+  background: var(--p10a);
+}
+
+.gantt-now {
+  position: absolute;
+  top: -6px;
+  bottom: 0;
+  width: 1px;
+  background: var(--brand-orange);
+  z-index: 1;
+}
+
+.gantt-now::before {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-orange);
+}
+
+.gantt-row {
+  position: relative;
+  height: 38px;
+  margin-top: 8px;
+}
+
+.gantt-bar {
+  position: absolute;
+  top: 0;
+  height: 38px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 7px;
+  border-radius: 19px;
+  border: var(--hairline) solid var(--p30a);
+  background: var(--p00);
+  box-shadow: 0 7px 10px -4px var(--p10a);
+  white-space: nowrap;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.gantt-bar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px -8px var(--p30a);
+}
+
+.gantt-bar.cooking {
+  background: color-mix(in srgb, var(--status-orange) 13%, #fff);
+  border-color: color-mix(in srgb, var(--status-orange) 34%, transparent);
+}
+
+.gantt-bar.testing {
+  background: color-mix(in srgb, var(--status-blue) 11%, #fff);
+  border-color: color-mix(in srgb, var(--status-blue) 30%, transparent);
+}
+
+.gantt-bar.shipped {
+  background: color-mix(in srgb, var(--status-green) 12%, #fff);
+  border-color: color-mix(in srgb, var(--status-green) 34%, transparent);
+}
+
+.gantt-bar.next {
+  border-style: dashed;
+  border-color: var(--p50a);
+  box-shadow: none;
+}
+
+/* No ship day yet: the bar fades out where it reaches today. */
+.gantt-bar.open {
+  border-right-color: transparent;
+  -webkit-mask-image: linear-gradient(to right, #000 60%, transparent);
+  mask-image: linear-gradient(to right, #000 60%, transparent);
+}
+
+.gantt-bar .avatar {
+  box-shadow: none;
+}
+
+.gantt-title {
+  color: var(--t1);
+}
+
+.gantt-dates {
+  color: var(--t3);
+  padding-right: 8px;
+}
+
 /* ---------- Dialog ---------- */
 
 dialog {

@@ -737,7 +737,8 @@ export function buildSeed(now: number = Date.now()): Rows {
       protoUrl: n.proto ? `https://proto.example/dunder-mifflin/${n.id}` : null,
       due: n.due === undefined ? null : new Date(now + n.due * DAY).toISOString().slice(0, 10),
       shots: n.shots ?? [],
-      createdAt: now - first * DAY - 3_600_000,
+      // Shipped work was opened a few days before its last update, so it has a real span on the timeline.
+      createdAt: now - (first + (n.status === "shipped" ? 4 + (ni % 5) : 0)) * DAY - 3_600_000,
     });
     n.people.forEach((p, i) => rows.notePeople.push({ noteId: n.id, personId: p, sort: i }));
 

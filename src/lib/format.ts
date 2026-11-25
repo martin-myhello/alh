@@ -9,6 +9,9 @@ const MONTHS_LONG = [
 const dayIndex = (ms: number) => Math.floor(ms / DAY);
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/** Days since the epoch, UTC. */
+export const todayIndex = (now = Date.now()) => Math.floor(now / DAY);
+
 export const todayISO = (now = Date.now()) => new Date(now).toISOString().slice(0, 10);
 
 /** "Today", "Yesterday", "Monday", then "01.11", as on the Note screen. */
@@ -28,6 +31,12 @@ export function dueLabel(due: string | null, now = Date.now()): string | null {
   const diff = dayIndex(ms) - dayIndex(now);
   const d = new Date(ms);
   if (diff >= 0 && diff < 7) return WEEKDAYS[d.getUTCDay()];
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+}
+
+/** "5 Nov" */
+export function shortDate(ms: number): string {
+  const d = new Date(ms);
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
 }
 
