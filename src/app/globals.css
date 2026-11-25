@@ -100,8 +100,17 @@ button {
 /* ---------- Top bar ---------- */
 
 .topbar {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 30;
   height: 84px;
+  /* Solid behind the controls, fading out below them so content slides under softly. */
+  background: linear-gradient(to bottom, var(--base-1) 0, var(--base-1) 62px, rgba(252, 252, 253, 0) 100%);
+  pointer-events: none;
+}
+
+.topbar > * {
+  pointer-events: auto;
 }
 
 .brand {
@@ -1695,7 +1704,8 @@ dialog form {
 @media (max-width: 860px) {
   .topbar {
     height: auto;
-    padding: 16px 16px 0;
+    padding: 16px 16px 12px;
+    background: var(--base-1);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
