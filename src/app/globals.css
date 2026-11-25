@@ -169,11 +169,11 @@ button {
   background: var(--p10);
 }
 
-.action:first-child {
+.action:first-of-type {
   border-radius: 19px 10px 10px 19px;
 }
 
-.action:last-child {
+.action:last-of-type {
   border-radius: 10px 19px 19px 10px;
 }
 
