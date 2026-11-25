@@ -10,7 +10,7 @@ export const STATUS_LABEL: Record<Status, string> = {
 export const TAGS = ["Product", "Design", "Dev", "Content", "QA", "SEO"] as const;
 export type Tag = (typeof TAGS)[number];
 
-/** The demo has no login: everything you post is posted as this person. */
+/** The demo has no login: you are this person unless you pick someone else on a profile. */
 export const ME = "michael";
 
 export type Person = {
@@ -49,8 +49,8 @@ export type Note = {
   description: string;
   status: Status;
   tag: string;
-  pr: number | null;
-  proto: boolean;
+  prUrl: string | null;
+  protoUrl: string | null;
   due: string | null;
   shots: string[];
   createdAt: number;
@@ -60,7 +60,26 @@ export type Note = {
   commentCount: number;
 };
 
-export type Data = { people: Person[]; notes: Note[] };
+export type NotificationKind = "comment" | "update" | "added";
+
+export type Notification = {
+  id: string;
+  personId: string;
+  kind: NotificationKind;
+  actorId: string;
+  noteId: string;
+  body: string;
+  createdAt: number;
+  readAt: number | null;
+};
+
+export type Data = {
+  people: Person[];
+  notes: Note[];
+  me: Person;
+  inbox: Notification[];
+  unread: number;
+};
 
 /** Flat rows, the shape stored in Postgres and produced by the seed. */
 export type Rows = {
@@ -69,4 +88,5 @@ export type Rows = {
   notePeople: { noteId: string; personId: string; sort: number }[];
   updates: Omit<Update, "comments">[];
   comments: Comment[];
+  notifications: Notification[];
 };

@@ -10,7 +10,17 @@ const NAV: [href: string, label: string, icon: IconName][] = [
   ["/timeline", "Timeline", "timeline"],
 ];
 
-export function TopBar({ active, people, q }: { active: string; people: Person[]; q?: string }) {
+export function TopBar({
+  active,
+  people,
+  unread = 0,
+  q,
+}: {
+  active: string;
+  people: Person[];
+  unread?: number;
+  q?: string;
+}) {
   return (
     <header className="topbar">
       <Link className="brand" href="/" title="Act Like Human">
@@ -21,6 +31,11 @@ export function TopBar({ active, people, q }: { active: string; people: Person[]
           <Link key={href} href={href} aria-current={href === active ? "page" : undefined}>
             <Icon name={icon} />
             {label}
+            {href === "/inbox" && unread > 0 && (
+              <span className="badge" aria-label={`${unread} unread`}>
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
           </Link>
         ))}
       </nav>

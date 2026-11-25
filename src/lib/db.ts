@@ -1,120 +1,132 @@
 import "server-only";
 import { neon } from "@neondatabase/serverless";
-import { buildSeed } from "./seed";
-import type { Comment, Data, Note, Rows, Status, Update } from "./types";
+import { cookies } from "next/headers";
+import {
+  ME,
+  type Comment,
+  type Data,
+  type Note,
+  type Notification,
+  type NotificationKind,
+  type Person,
+  type Status,
+  type Update,
+} from "./types";
 
-/**
- * Data access. Uses Neon Postgres when DATABASE_URL is set; otherwise falls
- * back to an in-memory copy of the seed so the app runs with zero setup.
- */
+/** Data access, on Neon Postgres. Run `pnpm db:seed` once to create and fill the tables. */
 
 const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
-const sql = url ? neon(url) : null;
-
-const g = globalThis as unknown as { __alhMemory?: Rows };
-function memory(): Rows {
-  if (!g.__alhMemory) g.__alhMemory = buildSeed();
-  return g.__alhMemory;
-}
+if (!url) throw new Error("DATABASE_URL is not set. Run `vercel env pull .env.local`, then `pnpm db:seed`.");
+const sql = neon(url);
 
 type Raw = Record<string, unknown>;
-const shots = (v: unknown): string[] =>
+const list = (v: unknown): string[] =>
   Array.isArray(v) ? (v as string[]) : typeof v === "string" ? JSON.parse(v) : [];
+const id = () => crypto.randomUUID().slice(0, 8);
 
-async function loadRows(): Promise<Rows> {
-  if (!sql) return memory();
-  // One HTTP round trip for all five reads.
-  const [people, notes, notePeople, updates, comments] = (await sql.transaction([
-    sql`select * from people order by sort`,
-    sql`select * from notes`,
-    sql`select * from note_people order by sort`,
-    sql`select * from updates`,
-    sql`select * from comments`,
-  ])) as Raw[][];
+export const ME_COOKIE = "alh_me";
 
-  return {
-    people: people.map((p) => ({
-      id: p.id as string,
-      name: p.name as string,
-      bio: p.bio as string,
-      github: p.github as string,
-      avatar: p.avatar as string,
-      away: (p.away as string) ?? null,
-      sort: Number(p.sort),
-    })),
-    notes: notes.map((n) => ({
-      id: n.id as string,
-      title: n.title as string,
-      description: n.description as string,
-      status: n.status as Status,
-      tag: n.tag as string,
-      pr: n.pr === null ? null : Number(n.pr),
-      proto: Boolean(n.proto),
-      due: (n.due as string) ?? null,
-      shots: shots(n.shots),
-      createdAt: Number(n.created_at),
-    })),
-    notePeople: notePeople.map((r) => ({
-      noteId: r.note_id as string,
-      personId: r.person_id as string,
-      sort: Number(r.sort),
-    })),
-    updates: updates.map((u) => ({
-      id: u.id as string,
-      noteId: u.note_id as string,
-      personId: u.person_id as string,
-      status: u.status as Status,
-      body: u.body as string,
-      shots: shots(u.shots),
-      createdAt: Number(u.created_at),
-    })),
-    comments: comments.map((c) => ({
-      id: c.id as string,
-      updateId: c.update_id as string,
-      personId: c.person_id as string,
-      body: c.body as string,
-      emoji: (c.emoji as string) ?? null,
-      createdAt: Number(c.created_at),
-    })),
-  };
+/** Who you are in the demo: the person picked on a profile page, Michael otherwise. */
+export async function getMeId(): Promise<string> {
+  return (await cookies()).get(ME_COOKIE)?.value || ME;
 }
 
 export async function getData(): Promise<Data> {
-  const rows = await loadRows();
+  const wanted = await getMeId();
+
+  // One HTTP round trip for every read.
+  const [p, n, np, u, c, nt] = (await sql.transaction([
+    sql`select * from people order by sort`,
+    sql`select * from notes`,
+    sql`select * from note_people order by sort`,
+    sql`select * from updates order by created_at desc`,
+    sql`select * from comments order by created_at`,
+    sql`select * from notifications where person_id = ${wanted} order by created_at desc limit 80`,
+  ])) as Raw[][];
+
+  const people: Person[] = p.map((r) => ({
+    id: r.id as string,
+    name: r.name as string,
+    bio: r.bio as string,
+    github: r.github as string,
+    avatar: r.avatar as string,
+    away: (r.away as string) ?? null,
+    sort: Number(r.sort),
+  }));
 
   const commentsByUpdate = new Map<string, Comment[]>();
-  for (const c of [...rows.comments].sort((a, b) => a.createdAt - b.createdAt)) {
-    const list = commentsByUpdate.get(c.updateId) ?? [];
-    list.push(c);
-    commentsByUpdate.set(c.updateId, list);
+  for (const r of c) {
+    const comment: Comment = {
+      id: r.id as string,
+      updateId: r.update_id as string,
+      personId: r.person_id as string,
+      body: r.body as string,
+      emoji: (r.emoji as string) ?? null,
+      createdAt: Number(r.created_at),
+    };
+    commentsByUpdate.set(comment.updateId, [...(commentsByUpdate.get(comment.updateId) ?? []), comment]);
   }
 
   const updatesByNote = new Map<string, Update[]>();
-  for (const u of [...rows.updates].sort((a, b) => b.createdAt - a.createdAt)) {
-    const list = updatesByNote.get(u.noteId) ?? [];
-    list.push({ ...u, comments: commentsByUpdate.get(u.id) ?? [] });
-    updatesByNote.set(u.noteId, list);
+  for (const r of u) {
+    const update: Update = {
+      id: r.id as string,
+      noteId: r.note_id as string,
+      personId: r.person_id as string,
+      status: r.status as Status,
+      body: r.body as string,
+      shots: list(r.shots),
+      createdAt: Number(r.created_at),
+      comments: commentsByUpdate.get(r.id as string) ?? [],
+    };
+    updatesByNote.set(update.noteId, [...(updatesByNote.get(update.noteId) ?? []), update]);
   }
 
-  const notes: Note[] = rows.notes.map((n) => {
-    const updates = updatesByNote.get(n.id) ?? [];
+  const notes: Note[] = n.map((r) => {
+    const updates = updatesByNote.get(r.id as string) ?? [];
     return {
-      ...n,
+      id: r.id as string,
+      title: r.title as string,
+      description: r.description as string,
+      status: r.status as Status,
+      tag: r.tag as string,
+      prUrl: (r.pr_url as string) ?? null,
+      protoUrl: (r.proto_url as string) ?? null,
+      due: (r.due as string) ?? null,
+      shots: list(r.shots),
+      createdAt: Number(r.created_at),
       updates,
-      peopleIds: rows.notePeople
-        .filter((r) => r.noteId === n.id)
-        .sort((a, b) => a.sort - b.sort)
-        .map((r) => r.personId),
-      updatedAt: updates[0]?.createdAt ?? n.createdAt,
-      commentCount: updates.reduce((sum, u) => sum + u.comments.length, 0),
+      peopleIds: np.filter((x) => x.note_id === r.id).map((x) => x.person_id as string),
+      updatedAt: updates[0]?.createdAt ?? Number(r.created_at),
+      commentCount: updates.reduce((sum, x) => sum + x.comments.length, 0),
     };
   });
   notes.sort((a, b) => b.updatedAt - a.updatedAt);
 
-  return { people: [...rows.people].sort((a, b) => a.sort - b.sort), notes };
+  const me = people.find((x) => x.id === wanted) ?? people.find((x) => x.id === ME) ?? people[0];
+  const inbox: Notification[] = nt.map((r) => ({
+    id: r.id as string,
+    personId: r.person_id as string,
+    kind: r.kind as NotificationKind,
+    actorId: r.actor_id as string,
+    noteId: r.note_id as string,
+    body: r.body as string,
+    createdAt: Number(r.created_at),
+    readAt: r.read_at === null ? null : Number(r.read_at),
+  }));
+
+  return { people, notes, me, inbox, unread: inbox.filter((x) => !x.readAt).length };
 }
 
-const id = () => crypto.randomUUID().slice(0, 8);
+/** One notification per recipient, never one for the person who did the thing. */
+const notify = (to: string[], kind: NotificationKind, actor: string, noteId: string, body: string, at: number) =>
+  [...new Set(to)]
+    .filter((personId) => personId !== actor)
+    .map(
+      (personId) =>
+        sql`insert into notifications (id, person_id, kind, actor_id, note_id, body, created_at)
+            values (${`${noteId}-${id()}`}, ${personId}, ${kind}, ${actor}, ${noteId}, ${body}, ${at})`,
+    );
 
 function slug(title: string) {
   const base = title
@@ -137,105 +149,77 @@ export async function insertNote(input: {
 }): Promise<string> {
   const noteId = slug(input.title);
   const now = Date.now();
-  const updateId = `${noteId}-${id()}`;
-  const body = "Opened this note";
-
-  if (!sql) {
-    const m = memory();
-    m.notes.push({
-      id: noteId,
-      title: input.title,
-      description: input.description,
-      status: input.status,
-      tag: input.tag,
-      pr: null,
-      proto: false,
-      due: input.due,
-      shots: [],
-      createdAt: now,
-    });
-    input.people.forEach((p, i) => m.notePeople.push({ noteId, personId: p, sort: i }));
-    m.updates.push({
-      id: updateId,
-      noteId,
-      personId: input.by,
-      status: input.status,
-      body,
-      shots: [],
-      createdAt: now,
-    });
-    return noteId;
-  }
-
   await sql.transaction([
     sql`insert into notes (id, title, description, status, tag, due, created_at)
         values (${noteId}, ${input.title}, ${input.description}, ${input.status}, ${input.tag}, ${input.due}, ${now})`,
     ...input.people.map(
-      (p, i) =>
-        sql`insert into note_people (note_id, person_id, sort) values (${noteId}, ${p}, ${i})`,
+      (person, i) => sql`insert into note_people (note_id, person_id, sort) values (${noteId}, ${person}, ${i})`,
     ),
     sql`insert into updates (id, note_id, person_id, status, body, created_at)
-        values (${updateId}, ${noteId}, ${input.by}, ${input.status}, ${body}, ${now})`,
+        values (${`${noteId}-${id()}`}, ${noteId}, ${input.by}, ${input.status}, ${"Opened this note"}, ${now})`,
+    ...notify(input.people, "added", input.by, noteId, "", now),
   ]);
   return noteId;
 }
 
-export async function insertUpdate(input: {
-  noteId: string;
-  by: string;
-  status: Status;
-  body: string;
-}) {
+export async function insertUpdate(input: { noteId: string; by: string; status: Status; body: string }) {
   const now = Date.now();
-  const updateId = `${input.noteId}-${id()}`;
-
-  if (!sql) {
-    const m = memory();
-    const note = m.notes.find((n) => n.id === input.noteId);
-    if (!note) return;
-    note.status = input.status;
-    m.updates.push({
-      id: updateId,
-      noteId: input.noteId,
-      personId: input.by,
-      status: input.status,
-      body: input.body,
-      shots: [],
-      createdAt: now,
-    });
-    return;
-  }
-
+  const people = (await sql`select person_id from note_people where note_id = ${input.noteId}`) as Raw[];
   await sql.transaction([
     sql`insert into updates (id, note_id, person_id, status, body, created_at)
-        values (${updateId}, ${input.noteId}, ${input.by}, ${input.status}, ${input.body}, ${now})`,
+        values (${`${input.noteId}-${id()}`}, ${input.noteId}, ${input.by}, ${input.status}, ${input.body}, ${now})`,
     sql`update notes set status = ${input.status} where id = ${input.noteId}`,
+    ...notify(people.map((r) => r.person_id as string), "update", input.by, input.noteId, input.body, now),
   ]);
 }
 
-export async function insertComment(input: {
-  updateId: string;
+export async function insertComment(input: { updateId: string; by: string; body: string; emoji: string | null }) {
+  const now = Date.now();
+  const [update] = (await sql`select note_id, person_id from updates where id = ${input.updateId}`) as Raw[];
+  if (!update) return;
+  const noteId = update.note_id as string;
+  const people = (await sql`select person_id from note_people where note_id = ${noteId}`) as Raw[];
+  const text = input.emoji ? `${input.body} ${input.emoji}` : input.body;
+  await sql.transaction([
+    sql`insert into comments (id, update_id, person_id, body, emoji, created_at)
+        values (${`${input.updateId}-${id()}`}, ${input.updateId}, ${input.by}, ${input.body}, ${input.emoji}, ${now})`,
+    ...notify(
+      [...people.map((r) => r.person_id as string), update.person_id as string],
+      "comment",
+      input.by,
+      noteId,
+      text,
+      now,
+    ),
+  ]);
+}
+
+export async function updateNote(input: {
+  noteId: string;
   by: string;
-  body: string;
-  emoji: string | null;
+  prUrl: string | null;
+  protoUrl: string | null;
+  due: string | null;
+  tag: string;
+  people: string[];
 }) {
   const now = Date.now();
-  const commentId = `${input.updateId}-${id()}`;
+  const before = (await sql`select person_id from note_people where note_id = ${input.noteId}`) as Raw[];
+  const had = new Set(before.map((r) => r.person_id as string));
+  await sql.transaction([
+    sql`update notes set pr_url = ${input.prUrl}, proto_url = ${input.protoUrl}, due = ${input.due}, tag = ${input.tag}
+        where id = ${input.noteId}`,
+    sql`delete from note_people where note_id = ${input.noteId}`,
+    ...input.people.map(
+      (person, i) => sql`insert into note_people (note_id, person_id, sort) values (${input.noteId}, ${person}, ${i})`,
+    ),
+    ...notify(input.people.filter((person) => !had.has(person)), "added", input.by, input.noteId, "", now),
+  ]);
+}
 
-  if (!sql) {
-    const m = memory();
-    if (!m.updates.some((u) => u.id === input.updateId)) return;
-    m.comments.push({
-      id: commentId,
-      updateId: input.updateId,
-      personId: input.by,
-      body: input.body,
-      emoji: input.emoji,
-      createdAt: now,
-    });
-    return;
-  }
-
-  await sql`insert into comments (id, update_id, person_id, body, emoji, created_at)
-            values (${commentId}, ${input.updateId}, ${input.by}, ${input.body}, ${input.emoji}, ${now})`;
+export async function markRead(me: string, notificationId?: string) {
+  const now = Date.now();
+  if (notificationId)
+    await sql`update notifications set read_at = ${now} where id = ${notificationId} and person_id = ${me} and read_at is null`;
+  else await sql`update notifications set read_at = ${now} where person_id = ${me} and read_at is null`;
 }

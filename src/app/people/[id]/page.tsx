@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { becomePerson } from "@/app/actions";
 import { Avatar, Back, NoteCard, Tabs, byId } from "@/components/bits";
 import { NewNote } from "@/components/dialogs";
 import { getData } from "@/lib/db";
@@ -19,7 +20,7 @@ export default async function Profile({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const [{ id }, { tab = "updated" }] = await Promise.all([params, searchParams]);
-  const { people, notes } = await getData();
+  const { people, notes, me } = await getData();
   const person = people.find((p) => p.id === id);
   if (!person) notFound();
 
@@ -47,6 +48,14 @@ export default async function Profile({
             Github <b>{person.github}</b>
           </p>
           {person.away && <p className="away">{person.away}</p>}
+          {person.id === me.id ? (
+            <p className="as">This is you</p>
+          ) : (
+            <form className="as" action={becomePerson}>
+              <input type="hidden" name="id" value={person.id} />
+              <button>Use ALH as {person.name}</button>
+            </form>
+          )}
         </div>
         <NewNote people={people} preset={person.id} label="Add a note" />
       </aside>

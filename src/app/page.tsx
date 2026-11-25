@@ -21,7 +21,7 @@ export default async function Feed({
   searchParams: Promise<{ tab?: string; tag?: string; q?: string }>;
 }) {
   const { tab = "latest", tag, q } = await searchParams;
-  const { people, notes } = await getData();
+  const { people, notes, unread } = await getData();
   const map = byId(people);
 
   const needle = q?.trim().toLowerCase();
@@ -59,7 +59,7 @@ export default async function Feed({
 
   return (
     <>
-      <TopBar active="/" people={people} q={q} />
+      <TopBar active="/" people={people} unread={unread} q={q} />
       <main className="column">
         <div className="people-wrap">
           <div className="people">

@@ -47,6 +47,12 @@ export function timelineLabel(due: string, now = Date.now()): string {
   return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}`;
 }
 
+/** "PR #12" for a pull request link, the fallback word for anything else. */
+export function linkLabel(url: string, fallback: string): string {
+  const m = url.match(/\/pull\/(\d+)/);
+  return m ? `${fallback} #${m[1]}` : fallback;
+}
+
 /** Split a trailing emoji off a short comment: "Looks good 👍" -> ["Looks good", "👍"]. */
 export function splitEmoji(text: string): [string, string | null] {
   const m = text.match(/^(.*?)\s*((?:\p{Extended_Pictographic}|\p{Emoji_Modifier}|‍|️)+)$/u);

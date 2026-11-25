@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Today" };
 
 export default async function Today() {
-  const { people, notes } = await getData();
+  const { people, notes, unread } = await getData();
   const map = byId(people);
   const today = todayISO();
 
@@ -26,7 +26,7 @@ export default async function Today() {
 
   return (
     <>
-      <TopBar active="/today" people={people} />
+      <TopBar active="/today" people={people} unread={unread} />
       <main className="column">
         <h1 className="page-title">{longDate()}</h1>
         <p className="page-sub">

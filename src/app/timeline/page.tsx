@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Timeline" };
 
 export default async function Timeline() {
-  const { people, notes } = await getData();
+  const { people, notes, unread } = await getData();
   const map = byId(people);
   const today = todayISO();
 
@@ -21,7 +21,7 @@ export default async function Timeline() {
 
   return (
     <>
-      <TopBar active="/timeline" people={people} />
+      <TopBar active="/timeline" people={people} unread={unread} />
       <main className="column">
         <h1 className="page-title">Timeline</h1>
         <p className="page-sub">

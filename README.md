@@ -3,7 +3,7 @@
 Project management made simple for humans. Notes instead of tickets, three honest
 stages (Cooking, Testing, Shipped), and a feed of what people are actually doing.
 
-This is a demo: no login, everything you post is posted as Michael. The data is a
+This is a demo: no login, you are Michael unless you pick someone else on a profile page. The data is a
 product backlog for the new Dunder Mifflin Infinity website.
 
 ## Stack
@@ -19,11 +19,10 @@ pnpm install
 pnpm dev
 ```
 
-Without `DATABASE_URL` the app serves an in-memory copy of the seed, so it works
-with zero setup. To use Postgres:
+The app reads and writes Neon Postgres, so it needs `DATABASE_URL`:
 
 ```bash
-vercel env pull .env.local   # or put DATABASE_URL in .env.local yourself
+vercel env pull .env.local   # DATABASE_URL is required
 pnpm db:seed                 # creates tables and replaces their content with the demo backlog
 ```
 

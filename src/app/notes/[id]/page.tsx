@@ -2,17 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar, Back, Pill, byId } from "@/components/bits";
 import { CommentBox, UpdateBox } from "@/components/dialogs";
-import { Icon } from "@/components/Icon";
+import { NoteMeta } from "@/components/NoteMeta";
 import { Shot } from "@/components/Shot";
 import { getData } from "@/lib/db";
 import { agoLabel, dueLabel } from "@/lib/format";
-import { ME, STATUS_LABEL, type Update } from "@/lib/types";
+import { STATUS_LABEL, type Update } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function NotePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { people, notes } = await getData();
+  const { people, notes, me } = await getData();
   const note = notes.find((n) => n.id === id);
   if (!note) notFound();
   const map = byId(people);
@@ -32,40 +32,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
       <Pill status={note.status} />
       <header className="note-head">
         <h1>{note.title}</h1>
-        <div className="note-meta">
-          {note.pr && (
-            <span className="meta">
-              <Icon name="pr" />
-              PR #{note.pr}
-            </span>
-          )}
-          {note.proto && (
-            <span className="meta">
-              <Icon name="play" />
-              Proto
-            </span>
-          )}
-          {due && (
-            <span className="meta">
-              <Icon name="timeline" />
-              {due}
-            </span>
-          )}
-          <span className="on">
-            <span className="avatars">
-              {note.peopleIds.map((p) => (
-                <Link key={p} href={`/people/${p}`}>
-                  <Avatar person={map.get(p)} />
-                </Link>
-              ))}
-            </span>
-            on it
-          </span>
-          <Link className="meta" href={`/?tag=${note.tag}`}>
-            <Icon name="tag" />
-            {note.tag}
-          </Link>
-        </div>
+        <NoteMeta note={note} people={people} due={due} />
         {note.description && <p className="lede">{note.description}</p>}
       </header>
 
@@ -102,7 +69,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
                 )}
                 <div className="composer">
                   <CommentBox updateId={u.id} />
-                  <Avatar person={map.get(ME)} />
+                  <Avatar person={me} />
                 </div>
               </article>
             ))}

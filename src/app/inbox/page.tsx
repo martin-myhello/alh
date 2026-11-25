@@ -1,68 +1,71 @@
-import Link from "next/link";
+import { openNotification, markAllRead } from "@/app/actions";
 import { Avatar, byId } from "@/components/bits";
 import { TopBar } from "@/components/TopBar";
 import { getData } from "@/lib/db";
 import { agoLabel } from "@/lib/format";
-import { ME, STATUS_LABEL } from "@/lib/types";
+import type { Notification } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Inbox" };
 
-type Item = { id: string; at: number; by: string; noteId: string; title: string; text: string; emoji?: string | null; mine: boolean };
+const VERB: Record<Notification["kind"], string> = {
+  comment: "commented on",
+  update: "posted an update on",
+  added: "added you to",
+};
 
 export default async function Inbox() {
-  const { people, notes } = await getData();
+  const { people, notes, me, inbox, unread } = await getData();
   const map = byId(people);
-  const me = map.get(ME);
+  const titles = new Map(notes.map((n) => [n.id, n.title]));
 
-  // Everything other people did on notes, with the ones you are on first in line.
-  const items: Item[] = [];
-  for (const n of notes) {
-    const mine = n.peopleIds.includes(ME);
-    for (const u of n.updates) {
-      if (u.personId !== ME)
-        items.push({ id: u.id, at: u.createdAt, by: u.personId, noteId: n.id, title: n.title, text: `Moved to ${STATUS_LABEL[u.status]}. ${u.body}`, mine });
-      for (const c of u.comments)
-        if (c.personId !== ME)
-          items.push({ id: c.id, at: c.createdAt, by: c.personId, noteId: n.id, title: n.title, text: c.body, emoji: c.emoji, mine: mine || u.personId === ME });
-    }
-  }
-  items.sort((a, b) => b.at - a.at);
+  const fresh = inbox.filter((n) => !n.readAt);
+  const earlier = inbox.filter((n) => n.readAt).slice(0, 30);
 
-  const forYou = items.filter((i) => i.mine).slice(0, 12);
-  const rest = items.filter((i) => !i.mine).slice(0, 14);
-
-  const rows = (list: Item[]) => (
+  const rows = (list: Notification[], empty: string) => (
     <div className="rows">
-      {list.map((i) => (
-        <Link key={i.id} className="row" href={`/notes/${i.noteId}`}>
-          <Avatar person={map.get(i.by)} />
-          <span className="row-main">
-            <div className="row-title">
-              {map.get(i.by)?.name} on {i.title}
-            </div>
-            <div className="row-sub">
-              {i.text} {i.emoji}
-            </div>
-          </span>
-          <span className="when">{agoLabel(i.at)}</span>
-          {agoLabel(i.at) === "Today" && <span className="dot" aria-label="New" />}
-        </Link>
+      {list.map((n) => (
+        <form key={n.id} action={openNotification}>
+          <input type="hidden" name="id" value={n.id} />
+          <input type="hidden" name="noteId" value={n.noteId} />
+          <button className="row">
+            <Avatar person={map.get(n.actorId)} />
+            <span className="row-main">
+              <div className="row-title">
+                {map.get(n.actorId)?.name} {VERB[n.kind]} {titles.get(n.noteId) ?? "a note"}
+              </div>
+              {n.body && <div className="row-sub">{n.body}</div>}
+            </span>
+            <span className="when">{agoLabel(n.createdAt)}</span>
+            {!n.readAt && <span className="dot" aria-label="Unread" />}
+          </button>
+        </form>
       ))}
-      {list.length === 0 && <p className="empty">All caught up</p>}
+      {list.length === 0 && <p className="empty">{empty}</p>}
     </div>
   );
 
   return (
     <>
-      <TopBar active="/inbox" people={people} />
+      <TopBar active="/inbox" people={people} unread={unread} />
       <main className="column">
         <h1 className="page-title">Inbox</h1>
-        <p className="page-sub">What happened on your notes, {me?.name}</p>
-        <h2 className="section">For you</h2>
-        {rows(forYou)}
-        <h2 className="section">Around the office</h2>
-        {rows(rest)}
+        <p className="page-sub">
+          {unread ? `${unread} new for you, ${me.name}` : `You are all caught up, ${me.name}`}
+        </p>
+
+        <div className="section split">
+          <h2>New</h2>
+          {unread > 0 && (
+            <form action={markAllRead}>
+              <button>Mark all read</button>
+            </form>
+          )}
+        </div>
+        {rows(fresh, "Nothing new")}
+
+        <h2 className="section">Earlier</h2>
+        {rows(earlier, "Nothing yet")}
       </main>
     </>
   );

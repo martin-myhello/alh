@@ -722,6 +722,7 @@ export function buildSeed(now: number = Date.now()): Rows {
     notePeople: [],
     updates: [],
     comments: [],
+    notifications: [],
   };
 
   NOTES.forEach((n, ni) => {
@@ -732,13 +733,31 @@ export function buildSeed(now: number = Date.now()): Rows {
       description: n.description,
       status: n.status,
       tag: n.tag,
-      pr: n.pr ?? null,
-      proto: n.proto ?? false,
+      prUrl: n.pr ? `https://github.example/dunder-mifflin/infinity/pull/${n.pr}` : null,
+      protoUrl: n.proto ? `https://proto.example/dunder-mifflin/${n.id}` : null,
       due: n.due === undefined ? null : new Date(now + n.due * DAY).toISOString().slice(0, 10),
       shots: n.shots ?? [],
       createdAt: now - first * DAY - 3_600_000,
     });
     n.people.forEach((p, i) => rows.notePeople.push({ noteId: n.id, personId: p, sort: i }));
+
+    const notify = (to: string[], kind: "comment" | "update" | "added", actor: string, body: string, at: number) => {
+      for (const personId of new Set(to)) {
+        if (personId === actor) continue;
+        rows.notifications.push({
+          id: `n${rows.notifications.length + 1}`,
+          personId,
+          kind,
+          actorId: actor,
+          noteId: n.id,
+          body,
+          createdAt: at,
+          readAt: now - at > 2 * DAY ? at + DAY : null,
+        });
+      }
+    };
+    const opener = n.updates[n.updates.length - 1].by;
+    notify(n.people, "added", opener, "", now - first * DAY - 3_600_000);
 
     n.updates.forEach((u, ui) => {
       const id = `${n.id}-u${n.updates.length - ui}`;
@@ -752,7 +771,15 @@ export function buildSeed(now: number = Date.now()): Rows {
         shots: u.shots ?? [],
         createdAt,
       });
+      notify(n.people, "update", u.by, u.body, createdAt);
       (u.comments ?? []).forEach((c, ci) => {
+        notify(
+          [...n.people, u.by],
+          "comment",
+          c[0],
+          c[2] ? `${c[1]} ${c[2]}` : c[1],
+          createdAt + Math.min((ci + 1) * 60_000, (ni * 7 + 4) * 60_000),
+        );
         rows.comments.push({
           id: `${id}-c${ci + 1}`,
           updateId: id,

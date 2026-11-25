@@ -1,3 +1,5 @@
+export const TABLES = ["notifications", "comments", "updates", "note_people", "notes", "people"];
+
 export const SCHEMA: string[] = [
   `create table if not exists people (
     id text primary key,
@@ -14,8 +16,8 @@ export const SCHEMA: string[] = [
     description text not null default '',
     status text not null default 'next',
     tag text not null default 'Product',
-    pr int,
-    proto boolean not null default false,
+    pr_url text,
+    proto_url text,
     due text,
     shots jsonb not null default '[]',
     created_at bigint not null
@@ -43,6 +45,17 @@ export const SCHEMA: string[] = [
     emoji text,
     created_at bigint not null
   )`,
+  `create table if not exists notifications (
+    id text primary key,
+    person_id text not null references people(id) on delete cascade,
+    kind text not null,
+    actor_id text not null references people(id) on delete cascade,
+    note_id text not null references notes(id) on delete cascade,
+    body text not null default '',
+    created_at bigint not null,
+    read_at bigint
+  )`,
+  `create index if not exists notifications_person_idx on notifications(person_id, created_at desc)`,
   `create index if not exists updates_note_idx on updates(note_id)`,
   `create index if not exists comments_update_idx on comments(update_id)`,
 ];

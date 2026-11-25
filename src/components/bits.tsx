@@ -85,17 +85,17 @@ export function NoteCard({ note, people }: { note: Note; people: Map<string, Per
           <Icon name="msgs" />
           {note.commentCount}
         </span>
-        {note.pr && (
-          <span className="meta">
+        {note.prUrl && (
+          <a className="meta link" href={note.prUrl} target="_blank" rel="noreferrer">
             <Icon name="pr" />
             PR
-          </span>
+          </a>
         )}
-        {note.proto && (
-          <span className="meta opt">
+        {note.protoUrl && (
+          <a className="meta link opt" href={note.protoUrl} target="_blank" rel="noreferrer">
             <Icon name="play" />
             Proto
-          </span>
+          </a>
         )}
         {due && (
           <span className="meta">
