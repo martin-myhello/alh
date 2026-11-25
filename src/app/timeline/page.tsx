@@ -31,19 +31,10 @@ export default async function Timeline() {
   const first = Math.min(today, ...rows.map((r) => r.start)) - 2;
   const last = Math.max(today, ...rows.map((r) => r.end)) + 5;
   const days = Array.from({ length: last - first + 1 }, (_, i) => first + i);
-  const shipped = notes.filter((n) => n.status === "shipped").length;
 
   return (
-    <>
+    <div className="gantt-page">
       <TopBar active="/timeline" people={people} unread={unread} />
-      <main>
-        <div className="column" style={{ paddingBottom: 0 }}>
-          <h1 className="page-title">Timeline</h1>
-          <p className="page-sub">
-            {shipped} of {notes.length} shipped. Each bar runs from the day a note started to the day it is due
-          </p>
-        </div>
-
         <Scroller className="gantt" focus={(today - first) * W}>
           <div className="gantt-inner" style={{ width: days.length * W }}>
             <div className="gantt-head">
@@ -90,7 +81,6 @@ export default async function Timeline() {
             </div>
           </div>
         </Scroller>
-      </main>
-    </>
+    </div>
   );
 }

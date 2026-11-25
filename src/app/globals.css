@@ -1408,27 +1408,37 @@ form + form > .row {
 
 /* ---------- Timeline: horizontal, one bar per note from start to due ---------- */
 
+.gantt-page {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
 .gantt {
   --day: 44px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  margin-top: 34px;
-  padding: 22px 0 72px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
   outline: none;
   scrollbar-width: thin;
   scrollbar-color: var(--p30) transparent;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
-  mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
 }
 
 .gantt-inner {
   position: relative;
-  margin: 0 48px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .gantt-head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
   display: flex;
-  height: 46px;
+  height: 76px;
+  padding-top: 30px;
+  background: var(--base-1);
 }
 
 .gantt-day {
@@ -1463,7 +1473,7 @@ form + form > .row {
 .gantt-month {
   position: absolute;
   left: 12px;
-  top: -22px;
+  top: -24px;
   white-space: nowrap;
   font-size: 13px;
   line-height: 15px;
@@ -1472,7 +1482,8 @@ form + form > .row {
 
 .gantt-body {
   position: relative;
-  padding: 6px 0 10px;
+  flex: 1;
+  padding: 6px 0 48px;
   background-image: repeating-linear-gradient(
     to right,
     var(--p20a) 0,
