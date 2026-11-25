@@ -1479,8 +1479,22 @@ form + form > .row {
   font-size: 11px;
 }
 
+/* The update hangs off its note by a thread line, so it reads as a follow-up. */
 .cu {
-  padding: 16px 0 0;
+  position: relative;
+  padding: 16px 0 0 28px;
+}
+
+.cu::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 0;
+  width: 15px;
+  height: 28px;
+  border: solid var(--p40);
+  border-width: 0 0 1.2px 1.2px;
+  border-bottom-left-radius: 11px;
 }
 
 .cu .stack {
