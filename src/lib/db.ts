@@ -146,17 +146,24 @@ export async function insertNote(input: {
   due: string | null;
   people: string[];
   by: string;
+  images: { mime: string; data: string }[];
 }): Promise<string> {
   const noteId = slug(input.title);
   const now = Date.now();
+  const stored = input.images.map((image) => ({ ...image, id: crypto.randomUUID() }));
+  const shots = JSON.stringify(stored.map((image) => `/img/${image.id}`));
   await sql.transaction([
-    sql`insert into notes (id, title, description, status, tag, due, created_at)
-        values (${noteId}, ${input.title}, ${input.description}, ${input.status}, ${input.tag}, ${input.due}, ${now})`,
+    ...stored.map(
+      (image) =>
+        sql`insert into images (id, mime, data, created_at) values (${image.id}, ${image.mime}, ${image.data}, ${now})`,
+    ),
+    sql`insert into notes (id, title, description, status, tag, due, shots, created_at)
+        values (${noteId}, ${input.title}, ${input.description}, ${input.status}, ${input.tag}, ${input.due}, ${shots}::jsonb, ${now})`,
     ...input.people.map(
       (person, i) => sql`insert into note_people (note_id, person_id, sort) values (${noteId}, ${person}, ${i})`,
     ),
-    sql`insert into updates (id, note_id, person_id, status, body, created_at)
-        values (${`${noteId}-${id()}`}, ${noteId}, ${input.by}, ${input.status}, ${"Opened this note"}, ${now})`,
+    sql`insert into updates (id, note_id, person_id, status, body, shots, created_at)
+        values (${`${noteId}-${id()}`}, ${noteId}, ${input.by}, ${input.status}, ${"Opened this note"}, ${shots}::jsonb, ${now})`,
     ...notify(input.people, "added", input.by, noteId, "", now),
   ]);
   return noteId;

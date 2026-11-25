@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useImperativeHandle, useRef, useState, type ReactNode, type Ref } from "react";
 import { useFormStatus } from "react-dom";
 import { postUpdate } from "@/app/actions";
 import { STATUS_LABEL, type Status } from "@/lib/types";
@@ -70,65 +70,98 @@ function toMarkdown(node: Node): string {
   }
 }
 
-function Post({ disabled }: { disabled: boolean }) {
+function Post({ disabled, children }: { disabled?: boolean; children: ReactNode }) {
   const { pending } = useFormStatus();
   return (
     <button className="btn" type="submit" disabled={pending || disabled}>
-      {pending ? "Posting" : "Post"}
+      {children}
     </button>
   );
 }
 
-/** The update composer on a note: formatted text plus up to four images. */
-export function Editor({ noteId, status }: { noteId: string; status: Status }) {
+export type RichHandle = {
+  /** Writes the formatted text into `field` and appends the attached images as `images`. */
+  fill(data: FormData, field: string): void;
+  clear(): void;
+};
+
+/**
+ * The text zone used for updates and for new notes: formatted text that looks
+ * formatted while you type, a small toolbar, and up to four images that can be
+ * picked, pasted or dropped. `children` sit on the right of the toolbar.
+ */
+export function RichArea({
+  ref,
+  placeholder,
+  className = "",
+  onBlank,
+  children,
+}: {
+  ref: Ref<RichHandle>;
+  placeholder: string;
+  className?: string;
+  onBlank?: (blank: boolean) => void;
+  children?: ReactNode;
+}) {
   const area = useRef<HTMLDivElement>(null);
   const picker = useRef<HTMLInputElement>(null);
   const [empty, setEmpty] = useState(true);
   const [pictures, setPictures] = useState<Picture[]>([]);
   const [over, setOver] = useState(false);
 
+  const report = (isEmpty: boolean, count = pictures.length) => {
+    setEmpty(isEmpty);
+    onBlank?.(isEmpty && count === 0);
+  };
+  const isEmpty = () => !area.current?.textContent?.trim() && !area.current?.querySelector("li");
+
+  useImperativeHandle(ref, () => ({
+    fill(data, field) {
+      const text = area.current ? toMarkdown(area.current) : "";
+      data.set(field, text.replace(/\n{3,}/g, "\n\n").trim());
+      pictures.forEach((p, i) => data.append("images", p.blob, `image-${i + 1}.jpg`));
+    },
+    clear() {
+      pictures.forEach((p) => URL.revokeObjectURL(p.url));
+      setPictures([]);
+      if (area.current) area.current.innerHTML = "";
+      report(true, 0);
+    },
+  }));
+
   /** Formats the selection in place, the way a word processor does. */
   const format = (command: "bold" | "italic" | "insertUnorderedList") => {
     area.current?.focus();
     document.execCommand(command);
-    setEmpty(!area.current?.textContent?.trim() && !area.current?.querySelector("li"));
+    report(isEmpty());
   };
 
   const link = () => {
     area.current?.focus();
     const raw = window.prompt("Link to", "https://")?.trim();
     if (!raw || raw === "https://") return;
-    const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
-    if (window.getSelection()?.isCollapsed) document.execCommand("insertHTML", false, `<a href="${encodeURI(url)}">${encodeURI(url).replace(/^https?:\/\//, "")}</a>&nbsp;`);
+    const url = encodeURI(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    if (window.getSelection()?.isCollapsed)
+      document.execCommand("insertHTML", false, `<a href="${url}">${url.replace(/^https?:\/\//, "")}</a>&nbsp;`);
     else document.execCommand("createLink", false, url);
-    setEmpty(false);
+    report(false);
   };
 
   const add = async (files: Iterable<File>) => {
     const images = [...files].filter((f) => f.type.startsWith("image/"));
-    const room = MAX_IMAGES - pictures.length;
-    const blobs = await Promise.all(images.slice(0, room).map(shrink));
+    const blobs = await Promise.all(images.slice(0, MAX_IMAGES - pictures.length).map(shrink));
     const fresh = blobs.filter((b): b is Blob => !!b).map((blob) => ({ blob, url: URL.createObjectURL(blob) }));
-    if (fresh.length) setPictures((p) => [...p, ...fresh].slice(0, MAX_IMAGES));
+    if (!fresh.length) return;
+    const next = [...pictures, ...fresh].slice(0, MAX_IMAGES);
+    setPictures(next);
+    onBlank?.(false);
   };
 
-  const clear = () => {
-    pictures.forEach((p) => URL.revokeObjectURL(p.url));
-    setPictures([]);
-    if (area.current) area.current.innerHTML = "";
-    setEmpty(true);
-  };
+  const hold = (e: React.MouseEvent) => e.preventDefault();
 
   return (
-    <form
-      className={`editor${over ? " over" : ""}`}
-      action={async (data) => {
-        const body = area.current ? toMarkdown(area.current) : "";
-        data.set("body", body.replace(/\n{3,}/g, "\n\n").trim());
-        pictures.forEach((p, i) => data.append("images", p.blob, `image-${i + 1}.jpg`));
-        await postUpdate(data);
-        clear();
-      }}
+    <div
+      className={`editor ${className}${over ? " over" : ""}`}
       onDragOver={(e) => {
         if (!e.dataTransfer.types.includes("Files")) return;
         e.preventDefault();
@@ -141,7 +174,6 @@ export function Editor({ noteId, status }: { noteId: string; status: Status }) {
         add(e.dataTransfer.files);
       }}
     >
-      <input type="hidden" name="noteId" value={noteId} />
       <div
         ref={area}
         className="rich"
@@ -149,10 +181,10 @@ export function Editor({ noteId, status }: { noteId: string; status: Status }) {
         suppressContentEditableWarning
         role="textbox"
         aria-multiline="true"
-        aria-label="What changed?"
-        data-placeholder="What changed?"
+        aria-label={placeholder}
+        data-placeholder={placeholder}
         data-empty={empty || undefined}
-        onInput={(e) => setEmpty(!e.currentTarget.textContent?.trim() && !e.currentTarget.querySelector("li"))}
+        onInput={() => report(isEmpty())}
         onPaste={(e) => {
           e.preventDefault();
           if (e.clipboardData.files.length) return void add(e.clipboardData.files);
@@ -183,7 +215,9 @@ export function Editor({ noteId, status }: { noteId: string; status: Status }) {
                 aria-label={`Remove image ${i + 1}`}
                 onClick={() => {
                   URL.revokeObjectURL(p.url);
-                  setPictures((all) => all.filter((x) => x !== p));
+                  const next = pictures.filter((x) => x !== p);
+                  setPictures(next);
+                  onBlank?.(empty && next.length === 0);
                 }}
               >
                 ×
@@ -194,16 +228,16 @@ export function Editor({ noteId, status }: { noteId: string; status: Status }) {
       )}
 
       <div className="tools">
-        <button type="button" className="tool" title="Bold (⌘B)" aria-label="Bold" onMouseDown={(e) => e.preventDefault()} onClick={() => format("bold")}>
+        <button type="button" className="tool" title="Bold (⌘B)" aria-label="Bold" onMouseDown={hold} onClick={() => format("bold")}>
           <b>B</b>
         </button>
-        <button type="button" className="tool" title="Italic (⌘I)" aria-label="Italic" onMouseDown={(e) => e.preventDefault()} onClick={() => format("italic")}>
+        <button type="button" className="tool" title="Italic (⌘I)" aria-label="Italic" onMouseDown={hold} onClick={() => format("italic")}>
           <i>I</i>
         </button>
-        <button type="button" className="tool" title="Link (⌘K)" aria-label="Link" onMouseDown={(e) => e.preventDefault()} onClick={link}>
+        <button type="button" className="tool" title="Link (⌘K)" aria-label="Link" onMouseDown={hold} onClick={link}>
           <Icon name="link" />
         </button>
-        <button type="button" className="tool" title="List" aria-label="Bullet list" onMouseDown={(e) => e.preventDefault()} onClick={() => format("insertUnorderedList")}>
+        <button type="button" className="tool" title="List" aria-label="Bullet list" onMouseDown={hold} onClick={() => format("insertUnorderedList")}>
           <Icon name="list" />
         </button>
         <button
@@ -228,6 +262,27 @@ export function Editor({ noteId, status }: { noteId: string; status: Status }) {
           }}
         />
         <span className="spacer" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** The update composer on a note. */
+export function Editor({ noteId, status }: { noteId: string; status: Status }) {
+  const rich = useRef<RichHandle>(null);
+  const [blank, setBlank] = useState(true);
+  return (
+    <form
+      className="update-form"
+      action={async (data) => {
+        rich.current?.fill(data, "body");
+        await postUpdate(data);
+        rich.current?.clear();
+      }}
+    >
+      <input type="hidden" name="noteId" value={noteId} />
+      <RichArea ref={rich} placeholder="What changed?" onBlank={setBlank}>
         <select name="status" defaultValue={status} key={status} aria-label="Status">
           {(Object.keys(STATUS_LABEL) as Status[]).map((s) => (
             <option key={s} value={s}>
@@ -235,8 +290,8 @@ export function Editor({ noteId, status }: { noteId: string; status: Status }) {
             </option>
           ))}
         </select>
-        <Post disabled={empty && pictures.length === 0} />
-      </div>
+        <Post disabled={blank}>Post</Post>
+      </RichArea>
     </form>
   );
 }

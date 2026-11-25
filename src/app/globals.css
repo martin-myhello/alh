@@ -988,8 +988,35 @@ button.chip.ghost:hover {
 
 /* ---------- Update editor and formatted text ---------- */
 
-.editor {
+.update-form {
   margin: 0 0 34px;
+}
+
+.editor.in-dialog {
+  border-radius: 12px;
+  background: var(--base-1);
+  padding: 11px 6px 6px 14px;
+}
+
+.editor.in-dialog:focus-within {
+  background: var(--p00);
+  box-shadow: none;
+}
+
+.dialog-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dialog-row .select {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--base-1);
+}
+
+.editor {
   padding: 13px 8px 8px 16px;
   border-radius: 19px;
   border: var(--hairline) solid var(--p30a);
@@ -1141,45 +1168,45 @@ button.chip.ghost:hover {
   border-radius: 15px;
 }
 
-.entry-body p {
+.prose p {
   margin: 0;
 }
 
-.entry-body p + p,
-.entry-body p + ul,
-.entry-body p + ol,
-.entry-body ul + p,
-.entry-body ol + p {
+.prose p + p,
+.prose p + ul,
+.prose p + ol,
+.prose ul + p,
+.prose ol + p {
   margin-top: 9px;
 }
 
-.entry-body ul,
-.entry-body ol {
+.prose ul,
+.prose ol {
   margin: 0;
   padding-left: 19px;
 }
 
-.entry-body li + li {
+.prose li + li {
   margin-top: 3px;
 }
 
-.entry-body strong {
+.prose strong {
   font-weight: 600;
   color: var(--t1);
 }
 
-.entry-body a {
+.prose a {
   color: var(--t1);
   text-decoration: underline;
   text-decoration-color: var(--p40a);
   text-underline-offset: 2px;
 }
 
-.entry-body a:hover {
+.prose a:hover {
   text-decoration-color: currentColor;
 }
 
-.entry-body code {
+.prose code {
   padding: 1px 5px;
   border-radius: 5px;
   background: var(--p10);

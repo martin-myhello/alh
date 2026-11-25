@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { addComment, createNote } from "@/app/actions";
 import { STATUS_LABEL, TAGS, type Person, type Status } from "@/lib/types";
+import { RichArea, type RichHandle } from "./Editor";
 import { Icon } from "./Icon";
 
 function Submit({ children }: { children: React.ReactNode }) {
@@ -50,6 +51,7 @@ export function NewNote({
   label?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const rich = useRef<RichHandle>(null);
   return (
     <>
       {label ? (
@@ -63,9 +65,14 @@ export function NewNote({
       )}
       <dialog ref={ref} onClick={(e) => e.target === ref.current && ref.current?.close()}>
         <h2>New note</h2>
-        <form action={createNote}>
+        <form
+          action={async (data) => {
+            rich.current?.fill(data, "description");
+            await createNote(data);
+          }}
+        >
           <input className="field" name="title" placeholder="Title of the note" required maxLength={120} autoFocus />
-          <textarea className="field" name="description" placeholder="What is it, in one or two sentences" rows={3} maxLength={280} />
+          <RichArea ref={rich} className="in-dialog" placeholder="What is it? Add detail, links or screenshots" />
           <div className="pick" role="group" aria-label="People on it">
             {people.map((p) => (
               <label key={p.id}>
@@ -82,7 +89,7 @@ export function NewNote({
               </label>
             ))}
           </div>
-          <div className="dialog-foot">
+          <div className="dialog-row">
             <select className="select" name="status" defaultValue="next" aria-label="Status">
               {(Object.keys(STATUS_LABEL) as Status[]).map((s) => (
                 <option key={s} value={s}>
@@ -91,7 +98,8 @@ export function NewNote({
               ))}
             </select>
             <input className="select" type="date" name="due" aria-label="Ship day" />
-            <span style={{ flex: 1 }} />
+          </div>
+          <div className="dialog-foot">
             <button type="button" className="cancel" onClick={() => ref.current?.close()}>
               Cancel
             </button>

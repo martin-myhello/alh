@@ -35,7 +35,11 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
       <header className="note-head">
         <h1>{note.title}</h1>
         <NoteMeta note={note} people={people} due={due} />
-        {note.description && <p className="lede">{note.description}</p>}
+        {note.description && (
+          <div className="lede prose">
+            <Rich text={note.description} />
+          </div>
+        )}
       </header>
 
       <Editor noteId={note.id} status={note.status} />
@@ -51,7 +55,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
                 </Link>
                 <p className="entry-status">{STATUS_LABEL[u.status]}</p>
                 {u.body && (
-                  <div className="entry-body">
+                  <div className="entry-body prose">
                     <Rich text={u.body} />
                   </div>
                 )}

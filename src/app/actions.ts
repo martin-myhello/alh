@@ -46,6 +46,16 @@ const link = (form: FormData, key: string) => {
   }
 };
 
+/** The editor already shrinks images to JPEG; anything else or oversized is dropped. */
+async function pictures(form: FormData) {
+  const images: { mime: string; data: string }[] = [];
+  for (const file of form.getAll("images").slice(0, 4)) {
+    if (!(file instanceof File) || file.type !== "image/jpeg" || file.size > 900_000) continue;
+    images.push({ mime: file.type, data: Buffer.from(await file.arrayBuffer()).toString("base64") });
+  }
+  return images;
+}
+
 async function picked(form: FormData) {
   const { people } = await getData();
   const known = new Set(people.map((p) => p.id));
@@ -60,7 +70,8 @@ export async function createNote(form: FormData) {
 
   const id = await insertNote({
     title,
-    description: text(form, "description", 280),
+    description: text(form, "description", 2000),
+    images: await pictures(form),
     status: status(form),
     tag: tag(form),
     due: day(form),
@@ -91,12 +102,7 @@ export async function postUpdate(form: FormData) {
   const noteId = text(form, "noteId", 80);
   const body = text(form, "body", 2000);
 
-  // The editor already shrinks images to JPEG; anything else or oversized is dropped.
-  const images: { mime: string; data: string }[] = [];
-  for (const file of form.getAll("images").slice(0, 4)) {
-    if (!(file instanceof File) || file.type !== "image/jpeg" || file.size > 900_000) continue;
-    images.push({ mime: file.type, data: Buffer.from(await file.arrayBuffer()).toString("base64") });
-  }
+  const images = await pictures(form);
   if (!noteId || (!body && !images.length)) return;
 
   await insertUpdate({

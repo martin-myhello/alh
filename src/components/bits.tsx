@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { dueLabel } from "@/lib/format";
+import { dueLabel, plain } from "@/lib/format";
 import { STATUS_LABEL, type Note, type Person, type Status } from "@/lib/types";
 import { Icon } from "./Icon";
 import { Stack } from "./Stack";
@@ -69,7 +69,7 @@ export function NoteCard({ note, people }: { note: Note; people: Map<string, Per
       <div className="card-head">
         <div>
           <h2 className="card-title">{note.title}</h2>
-          {note.description && <p className="card-desc">{note.description}</p>}
+          {note.description && <p className="card-desc">{plain(note.description)}</p>}
         </div>
         <Pill status={note.status} />
       </div>
