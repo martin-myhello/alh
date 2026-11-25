@@ -2,7 +2,7 @@ import Link from "next/link";
 import { dueLabel } from "@/lib/format";
 import { STATUS_LABEL, type Note, type Person, type Status } from "@/lib/types";
 import { Icon } from "./Icon";
-import { Shot } from "./Shot";
+import { Stack } from "./Stack";
 
 export function Avatar({ person, size = 24 }: { person: Person | undefined; size?: 24 | 68 }) {
   return (
@@ -62,7 +62,7 @@ export function Tabs({
 
 export function NoteCard({ note, people }: { note: Note; people: Map<string, Person> }) {
   const due = dueLabel(note.due);
-  const shots = note.shots.slice(0, 3).reverse();
+  const shots = note.shots.slice(0, 3);
   return (
     <article className={`card${shots.length ? "" : " bare"}`}>
       <Link className="card-cover" href={`/notes/${note.id}`} aria-label={note.title} />
@@ -73,13 +73,7 @@ export function NoteCard({ note, people }: { note: Note; people: Map<string, Per
         </div>
         <Pill status={note.status} />
       </div>
-      {shots.length > 0 && (
-        <div className="stack" aria-hidden="true">
-          {shots.map((s, i) => (
-            <Shot key={i} src={s} />
-          ))}
-        </div>
-      )}
+      {shots.length > 0 && <Stack shots={shots} href={`/notes/${note.id}`} />}
       <div className="card-foot">
         <span className="meta">
           <Icon name="msgs" />

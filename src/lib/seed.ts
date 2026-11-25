@@ -99,14 +99,14 @@ const NOTES: N[] = [
     pr: 12,
     proto: true,
     due: 0,
-    shots: ["mock:home", "mock:wire", LEGACY],
+    shots: ["/shots/home.jpg", "/shots/wire.jpg", LEGACY],
     updates: [
       {
         by: "jim",
         status: "cooking",
         ago: 0,
         body: "Hero is responsive down to 360px. Nav collapses into the new drawer, still missing the hover states from Pam's file",
-        shots: ["mock:home", "mock:mobile", "mock:code"],
+        shots: ["/shots/home.jpg", "/shots/mobile.jpg", "/shots/code.jpg"],
         comments: [
           ["pam", "Hover states are in the proto", "✅"],
           ["michael", "Bigger logo", "👍"],
@@ -117,7 +117,7 @@ const NOTES: N[] = [
         status: "cooking",
         ago: 2,
         body: "Final hero comp is ready. Headline sits on two lines, product shot bleeds off the right edge",
-        shots: ["mock:home"],
+        shots: ["/shots/home.jpg"],
         comments: [["jim", "On it", "👍"]],
       },
       {
@@ -138,14 +138,14 @@ const NOTES: N[] = [
     pr: 15,
     proto: true,
     due: 2,
-    shots: ["mock:catalogue", "mock:table", "mock:wire"],
+    shots: ["/shots/catalogue.jpg", "/shots/api.jpg", "/shots/wire.jpg"],
     updates: [
       {
         by: "dwight",
         status: "cooking",
         ago: 0,
         body: "Product API returns the full catalogue in 80ms. Filters are computed server side, facets come back with counts",
-        shots: ["mock:code", "mock:table"],
+        shots: ["/shots/api.jpg", "/shots/catalogue.jpg"],
         comments: [
           ["jim", "API is fast", "🔥"],
           ["angela", "Cardstock is missing"],
@@ -156,7 +156,7 @@ const NOTES: N[] = [
         status: "cooking",
         ago: 3,
         body: "Grid and filter rail are in. Using the legacy product photos until the new shoot lands",
-        shots: ["mock:catalogue"],
+        shots: ["/shots/catalogue.jpg"],
       },
     ],
   },
@@ -170,14 +170,14 @@ const NOTES: N[] = [
     pr: 19,
     proto: true,
     due: 1,
-    shots: ["mock:mobile", "mock:wire"],
+    shots: ["/shots/mobile.jpg", "/shots/wire.jpg"],
     updates: [
       {
         by: "jim",
         status: "testing",
         ago: 1,
         body: "Drawer is on staging. Focus is trapped while open and it closes on route change",
-        shots: ["mock:mobile"],
+        shots: ["/shots/mobile.jpg"],
         comments: [
           ["creed", "Works on my BlackBerry", "✅"],
           ["angela", "Back button closes it", "👍"],
@@ -188,7 +188,7 @@ const NOTES: N[] = [
         status: "cooking",
         ago: 5,
         body: "Three directions for the drawer. Going with the full height sheet, it leaves room for the branch finder",
-        shots: ["mock:mobile", "mock:wire"],
+        shots: ["/shots/mobile.jpg", "/shots/wire.jpg"],
       },
     ],
   },
@@ -202,14 +202,14 @@ const NOTES: N[] = [
     pr: 18,
     proto: true,
     due: 6,
-    shots: ["mock:cart", "mock:wire", "mock:code"],
+    shots: ["/shots/cart.jpg", "/shots/wire.jpg", "/shots/code.jpg"],
     updates: [
       {
         by: "dwight",
         status: "cooking",
         ago: 1,
         body: "Payment provider is wired in test mode. Orders are written before the charge so nothing gets lost on a timeout",
-        shots: ["mock:cart", "mock:code"],
+        shots: ["/shots/cart.jpg", "/shots/code.jpg"],
         comments: [
           ["michael", "Can we add a golden ticket?", "🎟️"],
           ["dwight", "No"],
@@ -233,14 +233,14 @@ const NOTES: N[] = [
     people: ["pam"],
     proto: true,
     due: 1,
-    shots: ["mock:product", "mock:type"],
+    shots: ["/shots/product.jpg", "/shots/type.jpg"],
     updates: [
       {
         by: "pam",
         status: "testing",
         ago: 1,
         body: "Proto is out for review. Bulk pricing moved above the fold after the sales team feedback",
-        shots: ["mock:product", "mock:table"],
+        shots: ["/shots/product.jpg", "/shots/type.jpg"],
         comments: [
           ["jim", "Pricing table is clear", "👍"],
           ["dwight", "Add beet stock"],
@@ -257,14 +257,14 @@ const NOTES: N[] = [
     people: ["pam", "michael"],
     proto: true,
     due: 2,
-    shots: ["mock:logo", "mock:palette"],
+    shots: ["/shots/logo.jpg", "/shots/palette.jpg"],
     updates: [
       {
         by: "pam",
         status: "testing",
         ago: 2,
         body: "Three lockups to test: horizontal, stacked and the infinity mark alone for the favicon",
-        shots: ["mock:logo", "mock:palette"],
+        shots: ["/shots/logo.jpg", "/shots/palette.jpg"],
         comments: [
           ["michael", "Make it pop", "✨"],
           ["angela", "Stacked one is tidy", "✅"],
@@ -286,14 +286,14 @@ const NOTES: N[] = [
     tag: "Content",
     people: ["michael", "angela"],
     due: 0,
-    shots: ["mock:doc", "mock:type"],
+    shots: ["/shots/copy.jpg", "/shots/type.jpg"],
     updates: [
       {
         by: "angela",
         status: "testing",
         ago: 0,
         body: "Proofread pass done. Removed four exclamation marks and one reference to a movie",
-        shots: ["mock:doc"],
+        shots: ["/shots/copy.jpg"],
         comments: [
           ["michael", "That was the best line"],
           ["pam", "Reads well now", "👍"],
@@ -316,14 +316,14 @@ const NOTES: N[] = [
     people: ["jim", "dwight"],
     pr: 24,
     due: 5,
-    shots: ["mock:chart", "mock:code"],
+    shots: ["/shots/chart.jpg", "/shots/code.jpg"],
     updates: [
       {
         by: "jim",
         status: "testing",
         ago: 1,
         body: "Homepage is at 1.6s LCP and 94kb of JS. Budget check now runs on every pull request",
-        shots: ["mock:chart"],
+        shots: ["/shots/chart.jpg"],
         comments: [
           ["dwight", "Unacceptable. Make it 1.2s"],
           ["michael", "Fast", "🚀"],
@@ -340,14 +340,14 @@ const NOTES: N[] = [
     people: ["angela", "dwight"],
     pr: 22,
     due: 7,
-    shots: ["mock:table", "mock:sitemap"],
+    shots: ["/shots/redirects.jpg", "/shots/sitemap.jpg"],
     updates: [
       {
         by: "angela",
         status: "cooking",
         ago: 2,
         body: "Spreadsheet is complete: 412 URLs, 380 mapped one to one, 32 go to the closest category",
-        shots: ["mock:table"],
+        shots: ["/shots/redirects.jpg"],
         comments: [
           ["dwight", "Importing tonight", "👍"],
           ["creed", "Keep /creedthoughts"],
@@ -364,14 +364,14 @@ const NOTES: N[] = [
     people: ["michael", "pam"],
     proto: true,
     due: 8,
-    shots: ["mock:branch", "mock:wire"],
+    shots: ["/shots/branch.jpg", "/shots/wire.jpg"],
     updates: [
       {
         by: "michael",
         status: "cooking",
         ago: 2,
         body: "Wrote the Scranton page. It is the best branch so it gets the longest page",
-        shots: ["mock:branch"],
+        shots: ["/shots/branch.jpg"],
         comments: [
           ["pam", "Trimmed to 200 words", "✂️"],
           ["dwight", "Add my title"],
@@ -388,14 +388,14 @@ const NOTES: N[] = [
     people: ["dwight"],
     pr: 21,
     due: 9,
-    shots: ["mock:code", "mock:table"],
+    shots: ["/shots/cms.jpg", "/shots/code.jpg"],
     updates: [
       {
         by: "dwight",
         status: "cooking",
         ago: 3,
         body: "Content model is defined: branch, person, opening hours. Preview links work on staging",
-        shots: ["mock:code"],
+        shots: ["/shots/cms.jpg"],
         comments: [["michael", "I approve everything", "👍"]],
       },
     ],
@@ -408,7 +408,7 @@ const NOTES: N[] = [
     tag: "QA",
     people: ["dwight", "angela"],
     due: 12,
-    shots: ["mock:table", "mock:code"],
+    shots: ["/shots/checklist.jpg", "/shots/code.jpg"],
     updates: [
       {
         by: "dwight",
@@ -430,14 +430,14 @@ const NOTES: N[] = [
     tag: "QA",
     people: ["angela", "creed"],
     due: 13,
-    shots: ["mock:table"],
+    shots: ["/shots/qa.jpg"],
     updates: [
       {
         by: "angela",
         status: "cooking",
         ago: 1,
         body: "Matrix is ready. Creed owns the devices nobody else can find",
-        shots: ["mock:table"],
+        shots: ["/shots/qa.jpg"],
         comments: [["creed", "Tested on a fridge", "✅"]],
       },
     ],
@@ -451,14 +451,14 @@ const NOTES: N[] = [
     people: ["pam", "jim"],
     pr: 7,
     due: -6,
-    shots: ["mock:palette", "mock:type"],
+    shots: ["/shots/palette.jpg", "/shots/type.jpg"],
     updates: [
       {
         by: "jim",
         status: "shipped",
         ago: 6,
         body: "Tokens are merged and published. Every colour in the app now comes from one file",
-        shots: ["mock:palette", "mock:type", "mock:code"],
+        shots: ["/shots/palette.jpg", "/shots/type.jpg", "/shots/code.jpg"],
         comments: [["pam", "Matches the file", "✅"]],
       },
       {
@@ -478,14 +478,14 @@ const NOTES: N[] = [
     people: ["pam"],
     proto: true,
     due: -9,
-    shots: ["mock:wire", "mock:sitemap"],
+    shots: ["/shots/wire.jpg", "/shots/sitemap.jpg"],
     updates: [
       {
         by: "pam",
         status: "shipped",
         ago: 9,
         body: "Wireframes are signed off. Bulk orders moved up, the newsletter moved to the footer",
-        shots: ["mock:wire"],
+        shots: ["/shots/wire.jpg"],
         comments: [
           ["michael", "Where is my photo?"],
           ["jim", "Clear to build", "👍"],
@@ -502,14 +502,14 @@ const NOTES: N[] = [
     people: ["pam", "michael"],
     proto: true,
     due: -12,
-    shots: ["mock:sitemap", "mock:doc"],
+    shots: ["/shots/sitemap.jpg", "/shots/doc.jpg"],
     updates: [
       {
         by: "pam",
         status: "shipped",
         ago: 12,
         body: "Sitemap is final. Card sorting with six customers confirmed the five sections",
-        shots: ["mock:sitemap"],
+        shots: ["/shots/sitemap.jpg"],
         comments: [["angela", "Finally tidy", "✅"]],
       },
     ],
@@ -546,14 +546,14 @@ const NOTES: N[] = [
     tag: "Product",
     people: ["angela", "pam"],
     due: -16,
-    shots: [LEGACY, "mock:table"],
+    shots: [LEGACY, "/shots/audit.jpg"],
     updates: [
       {
         by: "angela",
         status: "shipped",
         ago: 16,
         body: "Audit is done. 140 pages reviewed, 61 to delete, 9 still mention fax ordering",
-        shots: [LEGACY, "mock:table"],
+        shots: [LEGACY, "/shots/audit.jpg"],
         comments: [
           ["michael", "Keep the party page"],
           ["pam", "Screens archived", "✅"],
@@ -569,14 +569,14 @@ const NOTES: N[] = [
     tag: "Product",
     people: ["michael", "jim"],
     due: -20,
-    shots: ["mock:doc", "mock:chart"],
+    shots: ["/shots/doc.jpg", "/shots/chart.jpg"],
     updates: [
       {
         by: "michael",
         status: "shipped",
         ago: 20,
         body: "Vision is approved by corporate. Two goals, one page, zero buzzwords after Jim's edit",
-        shots: ["mock:doc"],
+        shots: ["/shots/doc.jpg"],
         comments: [["jim", "Cut 11 pages", "✂️"]],
       },
     ],

@@ -261,14 +261,48 @@ button {
   pointer-events: none;
 }
 
+.bubbles.r {
+  left: auto;
+  right: 0;
+  align-items: flex-end;
+}
+
 .bubbles .chip {
-  max-width: 100px;
+  max-width: 190px;
   display: block;
   line-height: 27px;
+  opacity: 0;
+  transform: translateY(10px) scale(0.86);
+  transform-origin: 34px 100%;
+  transition:
+    opacity 0.18s ease-out,
+    transform 0.18s ease-in;
+}
+
+.bubbles.r .chip {
+  transform-origin: calc(100% - 34px) 100%;
+}
+
+.person.on .bubbles .chip {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.22s ease-out,
+    transform 0.42s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+
+/* The lower bubble lands first, then the one above it. */
+.person.on .bubbles .chip:first-child:not(:last-child) {
+  transition-delay: 0.14s;
 }
 
 .bubbles .chip:first-child:not(:last-child) {
   margin-left: 24px;
+}
+
+.bubbles.r .chip:first-child:not(:last-child) {
+  margin-left: 0;
+  margin-right: 24px;
 }
 
 /* ---------- Avatar ---------- */
@@ -505,34 +539,90 @@ button.chip.ghost:hover {
 
 .stack {
   position: relative;
+  z-index: 2;
   height: 247px;
   margin: 22px 0 56px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
 }
 
-.stack .shot {
+.stack.swipe {
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.stack.dragging {
+  cursor: grabbing;
+}
+
+.stack .shot-wrap {
   position: absolute;
   width: 439px;
   max-width: 82%;
   left: 50%;
   top: 0;
-  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s;
 }
 
-.stack .shot:nth-last-child(1) {
+.stack .shot-wrap:nth-last-of-type(1) {
   transform: translate(calc(-50% + 3px), 0) rotate(4deg);
 }
-.stack .shot:nth-last-child(2) {
+.stack .shot-wrap:nth-last-of-type(2) {
   transform: translate(calc(-50% - 4px), 0) rotate(-1deg);
 }
-.stack .shot:nth-last-child(3) {
+.stack .shot-wrap:nth-last-of-type(3) {
   transform: translate(calc(-50% - 13px), 6px) rotate(5deg);
 }
 
-.card:hover .stack .shot:nth-last-child(1) {
+.card:hover .stack:not(.dragging) .shot-wrap:nth-last-of-type(1) {
   transform: translate(calc(-50% + 10px), -3px) rotate(5deg);
 }
-.card:hover .stack .shot:nth-last-child(3) {
+.card:hover .stack .shot-wrap:nth-last-of-type(3) {
   transform: translate(calc(-50% - 22px), 8px) rotate(7deg);
+}
+
+.stack:focus-visible .shot-wrap:nth-last-of-type(1) .shot {
+  outline: 2px solid var(--status-blue);
+  outline-offset: 2px;
+}
+
+.pager {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -30px;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.card:hover .pager,
+.stack:focus-visible .pager,
+.stack.dragging .pager {
+  opacity: 1;
+}
+
+.pager i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--p30);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.pager i.on {
+  background: var(--t2);
+  transform: scale(1.2);
+}
+
+@media (hover: none) {
+  .pager {
+    opacity: 1;
+  }
 }
 
 .shot {

@@ -1,10 +1,9 @@
-import Link from "next/link";
-import { Avatar, NoteCard, Tabs, byId } from "@/components/bits";
+import { NoteCard, Tabs, byId } from "@/components/bits";
 import { Filter } from "@/components/dialogs";
+import { People } from "@/components/People";
 import { TopBar } from "@/components/TopBar";
 import { getData } from "@/lib/db";
-import { agoLabel } from "@/lib/format";
-import { TAGS, type Comment } from "@/lib/types";
+import { TAGS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -33,20 +32,14 @@ export default async function Feed({
     return hay.join(" ").toLowerCase().includes(needle);
   });
 
-  // What people said since yesterday floats above their face, like in the design.
-  const said = new Map<string, Comment[]>();
-  for (const n of notes)
-    for (const u of n.updates)
-      for (const c of u.comments)
-        if (["Today", "Yesterday"].includes(agoLabel(c.createdAt)))
-          said.set(c.personId, [...(said.get(c.personId) ?? []), c]);
-  let previousSpoke = false;
-  const bubbles = new Map<string, Comment[]>();
-  for (const p of people) {
-    const mine: Comment[] = previousSpoke ? [] : (said.get(p.id) ?? []).sort((a, b) => b.createdAt - a.createdAt).slice(0, 2);
-    previousSpoke = mine.length > 0;
-    bubbles.set(p.id, mine);
-  }
+  // What each person is working on right now floats above their face.
+  const working: Record<string, string[]> = {};
+  for (const p of people)
+    working[p.id] = notes
+      .filter((n) => n.peopleIds.includes(p.id) && (n.status === "cooking" || n.status === "testing"))
+      .slice(0, 2)
+      .map((n) => n.title)
+      .reverse();
 
   const qs = (next: { tag?: string }) => {
     const s = new URLSearchParams();
@@ -61,25 +54,7 @@ export default async function Feed({
     <>
       <TopBar active="/" people={people} unread={unread} q={q} />
       <main className="column">
-        <div className="people-wrap">
-          <div className="people">
-            {people.map((p) => (
-              <Link key={p.id} className="person" href={`/people/${p.id}`}>
-                {bubbles.get(p.id)!.length > 0 && (
-                  <span className="bubbles">
-                    {bubbles.get(p.id)!.map((c) => (
-                      <span key={c.id} className="chip">
-                        {c.body}
-                      </span>
-                    ))}
-                  </span>
-                )}
-                <Avatar person={p} size={68} />
-                {p.name}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <People people={people} working={working} />
 
         <div style={{ margin: "27px 0 25px" }}>
           <Tabs base="/" tabs={TABS} active={tab} params={{ tag, q }}>
