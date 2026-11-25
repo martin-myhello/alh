@@ -1415,14 +1415,78 @@ form + form > .row {
   color: var(--brand-orange);
 }
 
-/* ---------- Latest update and comment preview on a feed card ---------- */
+/* ---------- Compact feed card: a small note header, then the update as the story ---------- */
 
-.card-update {
-  margin: 18px -18px -18px -19px;
-  padding: 16px 18px 18px 19px;
-  border-top: var(--hairline) solid var(--p20a);
-  border-radius: 0 0 18px 18px;
-  background: linear-gradient(to bottom, var(--base-1), var(--p00) 70%);
+.card.compact {
+  padding-top: 14px;
+}
+
+.cn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 -18px 0 -19px;
+  padding: 0 21px 14px 15px;
+  border-bottom: var(--hairline) solid var(--p20a);
+}
+
+.cn-thumb {
+  flex: none;
+  width: 62px;
+  aspect-ratio: 439 / 241;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--p10);
+  box-shadow: 0 0 0 var(--hairline) var(--p30a);
+}
+
+.cn-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cn-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.cn-text .card-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cn-sub {
+  margin: 5px 0 0;
+  color: var(--t3);
+  font-size: 12px;
+}
+
+.cn .pill {
+  height: 24px;
+  padding: 0 11px;
+  margin: 0;
+  font-size: 11px;
+}
+
+.cu {
+  padding: 16px 0 0;
+}
+
+.cu .stack {
+  margin: 30px 0 34px;
+}
+
+.card.compact .card-foot {
+  margin-top: 20px;
+  padding-top: 14px;
+  box-shadow: 0 calc(-1 * var(--hairline)) 0 var(--p20a);
+  margin-left: -19px;
+  margin-right: -18px;
+  padding-left: 24px;
+  padding-right: 18px;
 }
 
 .cu-head {
@@ -1448,7 +1512,7 @@ form + form > .row {
   color: var(--t2);
   line-height: 18px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

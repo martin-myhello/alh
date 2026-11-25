@@ -62,88 +62,123 @@ export function Tabs({
 
 export function NoteCard({ note, people }: { note: Note; people: Map<string, Person> }) {
   const due = dueLabel(note.due);
-  const shots = note.shots.slice(0, 3);
+  const href = `/notes/${note.id}`;
 
-  // The latest update sits under the note, with the two newest comments and a count of the rest.
   const latest = note.updates[0];
   const comments = note.updates.flatMap((u) => u.comments).sort((x, y) => x.createdAt - y.createdAt);
   const preview = comments.slice(-2);
   const shown = new Set(preview.map((c) => c.id));
   const others = [...new Set(comments.filter((c) => !shown.has(c.id)).map((c) => c.personId))].slice(0, 3);
+
+  // A note that has moved (an update beyond opening it, or any comment) is shown compact,
+  // with the update as the story. A brand new note gets the full card.
+  const active = !!latest && (note.updates.length > 1 || comments.length > 0 || latest.body !== "Opened this note");
+  const shots = (active ? latest.shots : note.shots).slice(0, 3);
+
+  const foot = (
+    <div className="card-foot">
+      <span className="meta">
+        <Icon name="msgs" />
+        {note.commentCount}
+      </span>
+      {note.prUrl && (
+        <a className="meta link" href={note.prUrl} target="_blank" rel="noreferrer">
+          <Icon name="pr" />
+          PR
+        </a>
+      )}
+      {note.protoUrl && (
+        <a className="meta link opt" href={note.protoUrl} target="_blank" rel="noreferrer">
+          <Icon name="play" />
+          Proto
+        </a>
+      )}
+      {due && (
+        <span className="meta">
+          <Icon name="timeline" />
+          {due}
+        </span>
+      )}
+      <span className="avatars">
+        {note.peopleIds.map((id) => (
+          <Avatar key={id} person={people.get(id)} />
+        ))}
+      </span>
+    </div>
+  );
+
+  if (!active)
+    return (
+      <article className={`card${shots.length ? "" : " bare"}`}>
+        <Link className="card-cover" href={href} aria-label={note.title} />
+        <div className="card-head">
+          <div>
+            <h2 className="card-title">{note.title}</h2>
+            {note.description && <p className="card-desc">{plain(note.description)}</p>}
+          </div>
+          <Pill status={note.status} />
+        </div>
+        {shots.length > 0 && <Stack shots={shots} href={href} />}
+        {foot}
+      </article>
+    );
+
   return (
-    <article className={`card${shots.length ? "" : " bare"}`}>
-      <Link className="card-cover" href={`/notes/${note.id}`} aria-label={note.title} />
-      <div className="card-head">
-        <div>
+    <article className="card compact">
+      <Link className="card-cover" href={href} aria-label={note.title} />
+
+      <div className="cn">
+        {note.shots[0] && (
+          <span className="cn-thumb">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={note.shots[0]} alt="" loading="lazy" />
+          </span>
+        )}
+        <div className="cn-text">
           <h2 className="card-title">{note.title}</h2>
-          {note.description && <p className="card-desc">{plain(note.description)}</p>}
+          <p className="cn-sub">
+            {note.tag}
+            {due && ` · due ${due}`}
+          </p>
         </div>
         <Pill status={note.status} />
       </div>
-      {shots.length > 0 && <Stack shots={shots} href={`/notes/${note.id}`} />}
-      <div className="card-foot">
-        <span className="meta">
-          <Icon name="msgs" />
-          {note.commentCount}
-        </span>
-        {note.prUrl && (
-          <a className="meta link" href={note.prUrl} target="_blank" rel="noreferrer">
-            <Icon name="pr" />
-            PR
-          </a>
-        )}
-        {note.protoUrl && (
-          <a className="meta link opt" href={note.protoUrl} target="_blank" rel="noreferrer">
-            <Icon name="play" />
-            Proto
-          </a>
-        )}
-        {due && (
-          <span className="meta">
-            <Icon name="timeline" />
-            {due}
+
+      <div className="cu">
+        <div className="cu-head">
+          <Avatar person={people.get(latest.personId)} />
+          <span className="cu-who">{people.get(latest.personId)?.name}</span>
+          <span>
+            {STATUS_LABEL[latest.status]} · {agoLabel(latest.createdAt)}
           </span>
-        )}
-        <span className="avatars">
-          {note.peopleIds.map((id) => (
-            <Avatar key={id} person={people.get(id)} />
-          ))}
-        </span>
-      </div>
-      {latest && (
-        <div className="card-update">
-          <div className="cu-head">
-            <Avatar person={people.get(latest.personId)} />
-            <span className="cu-who">{people.get(latest.personId)?.name}</span>
-            <span>
-              {STATUS_LABEL[latest.status]} · {agoLabel(latest.createdAt)}
-            </span>
-          </div>
-          <p className="cu-body">{plain(latest.body)}</p>
-          {comments.length > 0 && (
-            <div className="cu-comments">
-              {preview.map((c) => (
-                <div className="cu-comment" key={c.id}>
-                  <Avatar person={people.get(c.personId)} />
-                  <span className="cu-bubble">
-                    <b>{people.get(c.personId)?.name}</b> {c.body} {c.emoji}
-                  </span>
-                </div>
-              ))}
-              {comments.length > preview.length && (
-                <div className="cu-more">
-                  <span className="avatars">
-                    {others.map((id) => (
-                      <Avatar key={id} person={people.get(id)} />
-                    ))}
-                  </span>
-                  {comments.length - preview.length} more {comments.length - preview.length === 1 ? "comment" : "comments"}
-                </div>
-              )}
-            </div>
-          )}
         </div>
-      )}
+        {latest.body && <p className="cu-body">{plain(latest.body)}</p>}
+        {shots.length > 0 && <Stack shots={shots} href={href} />}
+        {comments.length > 0 && (
+          <div className="cu-comments">
+            {preview.map((c) => (
+              <div className="cu-comment" key={c.id}>
+                <Avatar person={people.get(c.personId)} />
+                <span className="cu-bubble">
+                  <b>{people.get(c.personId)?.name}</b> {c.body} {c.emoji}
+                </span>
+              </div>
+            ))}
+            {comments.length > preview.length && (
+              <div className="cu-more">
+                <span className="avatars">
+                  {others.map((id) => (
+                    <Avatar key={id} person={people.get(id)} />
+                  ))}
+                </span>
+                {comments.length - preview.length} more {comments.length - preview.length === 1 ? "comment" : "comments"}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {foot}
     </article>
   );
 }
