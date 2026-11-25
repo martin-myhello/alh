@@ -1418,16 +1418,23 @@ form + form > .row {
 /* ---------- Compact feed card: a small note header, then the update as the story ---------- */
 
 .card.compact {
-  padding-top: 14px;
+  padding-top: 12px;
 }
 
+/* The note an update belongs to: a grey inset card, like a quoted link. */
 .cn {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 -18px 0 -19px;
-  padding: 0 21px 14px 15px;
-  border-bottom: var(--hairline) solid var(--p20a);
+  margin: 0 -6px 0 -7px;
+  padding: 9px 12px 9px 9px;
+  border-radius: 12px;
+  background: var(--p10);
+  transition: background 0.15s;
+}
+
+.card.compact:hover .cn {
+  background: var(--p20);
 }
 
 .cn-thumb {
@@ -1465,6 +1472,7 @@ form + form > .row {
 }
 
 .cn .pill {
+  background: var(--p00);
   height: 24px;
   padding: 0 11px;
   margin: 0;

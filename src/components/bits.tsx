@@ -148,9 +148,7 @@ export function NoteCard({ note, people }: { note: Note; people: Map<string, Per
         <div className="cu-head">
           <Avatar person={people.get(latest.personId)} />
           <span className="cu-who">{people.get(latest.personId)?.name}</span>
-          <span>
-            {STATUS_LABEL[latest.status]} · {agoLabel(latest.createdAt)}
-          </span>
+          <span>posted an update · {agoLabel(latest.createdAt)}</span>
         </div>
         {latest.body && <p className="cu-body">{plain(latest.body)}</p>}
         {shots.length > 0 && <Stack shots={shots} href={href} />}
