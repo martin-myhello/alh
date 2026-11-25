@@ -149,6 +149,22 @@ export function NoteCard({ note, people }: { note: Note; people: Map<string, Per
           <Avatar person={people.get(latest.personId)} />
           <span className="cu-who">{people.get(latest.personId)?.name}</span>
           <span>posted an update · {agoLabel(latest.createdAt)}</span>
+          <svg className="follow" viewBox="0 0 34 52" fill="none" aria-hidden="true">
+            <path
+              d="M15 3C8 0.6 3 7 6.5 13C10 19 20 16 18 8.5C17 4.6 12 5 12.5 11.5C13.2 21 22 28.5 17 46"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M9.5 37.5C11.8 41.5 14.2 44.5 17 47C19.4 43.6 22.4 41 26 39"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
         {latest.body && <p className="cu-body">{plain(latest.body)}</p>}
         {shots.length > 0 && <Stack shots={shots} href={href} />}
