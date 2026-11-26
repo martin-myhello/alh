@@ -1,6 +1,7 @@
 import "server-only";
 import { neon } from "@neondatabase/serverless";
 import { cookies } from "next/headers";
+import { install } from "./install";
 import {
   ME,
   type Comment,
@@ -16,8 +17,22 @@ import {
 /** Data access, on Neon Postgres. Run `pnpm db:seed` once to create and fill the tables. */
 
 const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
-if (!url) throw new Error("DATABASE_URL is not set. Run `vercel env pull .env.local`, then `pnpm db:seed`.");
+if (!url) throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and paste your Postgres connection string.");
 const sql = neon(url);
+
+/** A fresh database has no tables yet: create them and load the demo backlog on the first visit. */
+async function installed<T>(read: () => Promise<T>): Promise<T> {
+  try {
+    return await read();
+  } catch (e) {
+    if ((e as { code?: string }).code !== "42P01") throw e; // undefined_table
+    await install(sql).catch(() => {}); // two first visits at once: the second insert fails, the read below still works
+    return read();
+  }
+}
+
+/** Drops everything and loads the demo backlog again (the optional nightly reset). */
+export const resetDemo = () => install(sql, { fresh: true });
 
 type Raw = Record<string, unknown>;
 const list = (v: unknown): string[] =>
@@ -35,14 +50,16 @@ export async function getData(): Promise<Data> {
   const wanted = await getMeId();
 
   // One HTTP round trip for every read.
-  const [p, n, np, u, c, nt] = (await sql.transaction([
-    sql`select * from people order by sort`,
-    sql`select * from notes`,
-    sql`select * from note_people order by sort`,
-    sql`select * from updates order by created_at desc`,
-    sql`select * from comments order by created_at`,
-    sql`select * from notifications where person_id = ${wanted} order by created_at desc limit 80`,
-  ])) as Raw[][];
+  const [p, n, np, u, c, nt] = (await installed(() =>
+    sql.transaction([
+      sql`select * from people order by sort`,
+      sql`select * from notes`,
+      sql`select * from note_people order by sort`,
+      sql`select * from updates order by created_at desc`,
+      sql`select * from comments order by created_at`,
+      sql`select * from notifications where person_id = ${wanted} order by created_at desc limit 80`,
+    ]),
+  )) as Raw[][];
 
   const people: Person[] = p.map((r) => ({
     id: r.id as string,
